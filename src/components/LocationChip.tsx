@@ -1,5 +1,5 @@
 import { LocationType, getLocationColor } from '@/services/ticketLocationService';
-import { Music, Star, Crown, UtensilsCrossed } from 'lucide-react';
+import { Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
 
 interface LocationChipProps {
   type: LocationType;
@@ -13,6 +13,7 @@ const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music,
   vip: Star,
   camarote: Crown,
+  camarote_grupo: Users,
   bistro: UtensilsCrossed,
 };
 

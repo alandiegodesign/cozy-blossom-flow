@@ -5,11 +5,11 @@ import { getEvent } from '@/services/eventService';
 import { getLocationsByEvent, LocationType } from '@/services/ticketLocationService';
 import { QuantitySelector } from '@/components/QuantitySelector';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Music, Star, Crown, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const ICONS: Record<LocationType, React.ElementType> = {
-  pista: Music, vip: Star, camarote: Crown, bistro: UtensilsCrossed,
+  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
 };
 
 export default function TicketSelectionPage() {
