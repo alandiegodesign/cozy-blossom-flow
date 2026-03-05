@@ -26,6 +26,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ProducerRoute({ children }: { children: React.ReactNode }) {
+  const { session, profile, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!session) return <Navigate to="/login" replace />;
+  if (profile && profile.user_type !== 'produtor') return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
@@ -41,8 +49,8 @@ const AppRoutes = () => (
     <Route path="/reset-password" element={<ResetPasswordPage />} />
     <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
     <Route path="/event/:id" element={<ProtectedRoute><EventDetailPage /></ProtectedRoute>} />
-    <Route path="/create-event" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
-    <Route path="/manage-locations/:eventId" element={<ProtectedRoute><ManageLocationsPage /></ProtectedRoute>} />
+    <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
+    <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
     <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
     <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
     <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />

@@ -14,6 +14,16 @@ export async function getEvents(): Promise<Event[]> {
   return data || [];
 }
 
+export async function getEventsByCreator(userId: string): Promise<Event[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', userId)
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
 export async function getEvent(id: string): Promise<Event | null> {
   const { data, error } = await supabase
     .from('events')
