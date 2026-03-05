@@ -5,12 +5,15 @@ import { LocationChip } from '@/components/LocationChip';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarDays, Clock, MapPin, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const event = getEvent(id!);
   const locations = getLocationsByEvent(id!);
+  const isProdutor = profile?.user_type === 'produtor';
 
   if (!event) {
     return (
@@ -36,12 +39,14 @@ export default function EventDetailPage() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <button
-          onClick={() => navigate(`/manage-locations/${event.id}`)}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white"
-        >
-          <Settings className="w-5 h-5" />
-        </button>
+        {isProdutor && (
+          <button
+            onClick={() => navigate(`/manage-locations/${event.id}`)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -94,13 +99,23 @@ export default function EventDetailPage() {
           )}
         </div>
 
-        <Button
-          className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
-          onClick={() => navigate(`/tickets/${event.id}`)}
-          disabled={locations.length === 0}
-        >
-          Comprar Ingressos
-        </Button>
+        {/* Clientes: comprar | Produtores: gerenciar */}
+        {isProdutor ? (
+          <Button
+            className="w-full h-14 text-lg font-display font-bold gradient-accent border-0 rounded-xl glow-secondary"
+            onClick={() => navigate(`/manage-locations/${event.id}`)}
+          >
+            <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais
+          </Button>
+        ) : (
+          <Button
+            className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
+            onClick={() => navigate(`/tickets/${event.id}`)}
+            disabled={locations.length === 0}
+          >
+            Comprar Ingressos
+          </Button>
+        )}
       </motion.div>
     </div>
   );
