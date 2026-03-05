@@ -4,7 +4,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Ticket, User, Briefcase, Eye, EyeOff, Lock, Mail, Phone, UserCircle } from 'lucide-react';
+import { Ticket, User, Briefcase, Eye, EyeOff, Lock, Mail, Phone, UserCircle, CreditCard } from 'lucide-react';
+
+function formatCpf(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function cleanCpf(value: string) {
+  return value.replace(/\D/g, '');
+}
 import { motion } from 'framer-motion';
 
 export default function SignupPage() {
@@ -12,6 +24,7 @@ export default function SignupPage() {
   const [userType, setUserType] = useState<'cliente' | 'produtor'>('cliente');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +46,7 @@ export default function SignupPage() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { name, user_type: userType, phone },
+        data: { name, user_type: userType, phone, cpf: cleanCpf(cpf) || undefined },
       },
     });
     setLoading(false);
@@ -95,6 +108,16 @@ export default function SignupPage() {
               placeholder="Nome completo *"
               value={name}
               onChange={e => setName(e.target.value)}
+              className="pl-12 h-14 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+
+          <div className="relative">
+            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              placeholder="CPF (opcional)"
+              value={cpf}
+              onChange={e => setCpf(formatCpf(e.target.value))}
               className="pl-12 h-14 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground"
             />
           </div>
