@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, getLocationColor } from '@/services/ticketLocationService';
-import { LocationType } from '@/types/models';
+import { getLocationsByEvent, createLocation, deleteLocation, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,22 +21,47 @@ const TYPES: { value: LocationType; label: string }[] = [
 export default function ManageLocationsPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const event = getEvent(eventId!);
-  const [locations, setLocations] = useState(getLocationsByEvent(eventId!));
+  const queryClient = useQueryClient();
+
+  const { data: event, isLoading: loadingEvent } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: () => getEvent(eventId!),
+    enabled: !!eventId,
+  });
+
+  const { data: locations = [] } = useQuery({
+    queryKey: ['locations', eventId],
+    queryFn: () => getLocationsByEvent(eventId!),
+    enabled: !!eventId,
+  });
+
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>('pista');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
 
-  const refresh = () => setLocations(getLocationsByEvent(eventId!));
+  const addMutation = useMutation({
+    mutationFn: createLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      setName(''); setPrice(''); setQuantity(''); setDescription('');
+      toast.success('Local adicionado!');
+    },
+    onError: () => toast.error('Erro ao adicionar local'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteLocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      toast.success('Local removido');
+    },
+  });
 
   const handleAdd = () => {
-    if (!name || !price || !quantity) {
-      toast.error('Preencha todos os campos');
-      return;
-    }
-    createLocation({
+    if (!name || !price || !quantity) { toast.error('Preencha todos os campos'); return; }
+    addMutation.mutate({
       event_id: eventId!,
       location_type: type,
       name,
@@ -46,20 +71,9 @@ export default function ManageLocationsPage() {
       available_quantity: parseInt(quantity),
       color: getLocationColor(type),
     });
-    setName('');
-    setPrice('');
-    setQuantity('');
-    setDescription('');
-    refresh();
-    toast.success('Local adicionado!');
   };
 
-  const handleDelete = (id: string) => {
-    deleteLocation(id);
-    refresh();
-    toast.success('Local removido');
-  };
-
+  if (loadingEvent) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!event) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Evento não encontrado</div>;
 
   return (
@@ -75,7 +89,6 @@ export default function ManageLocationsPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-5">
-        {/* Add form */}
         <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <Plus className="w-5 h-5 text-secondary" /> Adicionar Local
@@ -94,26 +107,21 @@ export default function ManageLocationsPage() {
             <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade" className="h-12 rounded-xl" />
           </div>
           <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição (opcional)" className="h-12 rounded-xl" />
-          <Button onClick={handleAdd} className="w-full h-12 gradient-accent border-0 rounded-xl font-display font-bold">
-            Adicionar
+          <Button onClick={handleAdd} disabled={addMutation.isPending} className="w-full h-12 gradient-accent border-0 rounded-xl font-display font-bold">
+            {addMutation.isPending ? 'Adicionando...' : 'Adicionar'}
           </Button>
         </div>
 
-        {/* List */}
         <div className="space-y-3">
           <h2 className="font-display font-semibold text-lg">Locais Cadastrados ({locations.length})</h2>
           {locations.map(loc => (
-            <motion.div
-              key={loc.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-card rounded-xl border border-border p-4 flex items-center justify-between"
-            >
+            <motion.div key={loc.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+              className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
               <div className="flex-1">
-                <LocationChip type={loc.location_type} name={loc.name} price={loc.price} available={loc.available_quantity} />
+                <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
                 {loc.description && <p className="text-xs text-muted-foreground mt-2 ml-1">{loc.description}</p>}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(loc.id)} className="text-destructive hover:text-destructive">
+              <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(loc.id)} className="text-destructive hover:text-destructive">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </motion.div>

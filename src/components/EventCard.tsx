@@ -1,6 +1,6 @@
-import { Event } from '@/types/models';
+import { Event } from '@/services/eventService';
 import { motion } from 'framer-motion';
-import { CalendarDays, MapPin } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface EventCardProps {
@@ -20,11 +20,8 @@ export function EventCard({ event }: EventCardProps) {
     >
       <div className="relative h-48 overflow-hidden">
         {event.banner_image ? (
-          <img
-            src={event.banner_image}
-            alt={event.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
+          <img src={event.banner_image} alt={event.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
         ) : (
           <div className="w-full h-full gradient-primary" />
         )}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { createEvent } from '@/services/eventService';
-import { getCurrentUser } from '@/services/userService';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +13,7 @@ import { motion } from 'framer-motion';
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -19,24 +21,30 @@ export default function CreateEventPage() {
   const [banner, setBanner] = useState('');
   const [mapImage, setMapImage] = useState('');
 
+  const mutation = useMutation({
+    mutationFn: createEvent,
+    onSuccess: (event) => {
+      toast.success('Evento criado com sucesso!');
+      navigate(`/manage-locations/${event.id}`);
+    },
+    onError: () => toast.error('Erro ao criar evento'),
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !date || !time) {
       toast.error('Preencha os campos obrigatórios');
       return;
     }
-    const user = getCurrentUser();
-    const event = createEvent({
+    mutation.mutate({
       title,
       description,
       date,
       time,
       banner_image: banner,
       map_image: mapImage,
-      created_by: user.id,
+      created_by: user!.id,
     });
-    toast.success('Evento criado com sucesso!');
-    navigate(`/manage-locations/${event.id}`);
   };
 
   return (
@@ -50,12 +58,8 @@ export default function CreateEventPage() {
         </div>
       </div>
 
-      <motion.form
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        onSubmit={handleSubmit}
-        className="max-w-2xl mx-auto px-6 -mt-6 space-y-5"
-      >
+      <motion.form initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit}
+        className="max-w-2xl mx-auto px-6 -mt-6 space-y-5">
         <div className="bg-card rounded-2xl border border-border p-6 space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium">Título *</label>
@@ -79,8 +83,9 @@ export default function CreateEventPage() {
           <ImagePickerButton label="Mapa do Evento" value={mapImage} onChange={setMapImage} />
         </div>
 
-        <Button type="submit" className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary">
-          Criar Evento
+        <Button type="submit" disabled={mutation.isPending}
+          className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary">
+          {mutation.isPending ? 'Criando...' : 'Criar Evento'}
         </Button>
       </motion.form>
     </div>

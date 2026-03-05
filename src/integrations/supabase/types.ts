@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          banner_image: string | null
+          created_at: string
+          created_by: string
+          date: string
+          description: string
+          id: string
+          map_image: string | null
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image?: string | null
+          created_at?: string
+          created_by: string
+          date: string
+          description?: string
+          id?: string
+          map_image?: string | null
+          time?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image?: string | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          description?: string
+          id?: string
+          map_image?: string | null
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          quantity: number
+          subtotal: number
+          ticket_location_id: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          quantity?: number
+          subtotal?: number
+          ticket_location_id: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          quantity?: number
+          subtotal?: number
+          ticket_location_id?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_ticket_location_id_fkey"
+            columns: ["ticket_location_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -44,12 +169,65 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_locations: {
+        Row: {
+          available_quantity: number
+          color: string | null
+          created_at: string
+          description: string | null
+          event_id: string
+          id: string
+          location_type: string
+          name: string
+          price: number
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          available_quantity?: number
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          event_id: string
+          id?: string
+          location_type: string
+          name: string
+          price?: number
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          available_quantity?: number
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          event_id?: string
+          id?: string
+          location_type?: string
+          name?: string
+          price?: number
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrease_availability: {
+        Args: { loc_id: string; qty: number }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
