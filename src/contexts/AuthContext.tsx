@@ -7,6 +7,7 @@ interface Profile {
   user_id: string;
   name: string;
   phone: string;
+  cpf: string | null;
   user_type: 'cliente' | 'produtor';
 }
 
