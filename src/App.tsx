@@ -57,7 +57,7 @@ const AppRoutes = () => (
     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
     <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
-    <Route path="/dashboard" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
+    <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
     <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
     <Route path="/sold-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
     <Route path="/archived" element={<ProducerRoute><ArchivedEventsPage /></ProducerRoute>} />

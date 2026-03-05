@@ -14,7 +14,6 @@ const MENU_ITEMS = [
   { label: 'Meus Eventos', icon: CalendarDays, path: '/' },
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
-  { label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
   { label: 'Validar Ingressos', icon: ScanLine, path: '/validate-tickets' },
   { label: 'Perfil', icon: User, path: '/profile' },
 ];
