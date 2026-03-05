@@ -11,6 +11,29 @@ export interface CartItem {
   unit_price: number;
 }
 
+export interface ProducerSaleRow {
+  order_id: string;
+  event_id: string;
+  event_title: string;
+  event_date: string;
+  buyer_id: string;
+  order_status: string;
+  total_amount: number;
+  order_created_at: string;
+  item_id: string;
+  location_name: string;
+  location_type: string;
+  item_quantity: number;
+  item_unit_price: number;
+  item_subtotal: number;
+}
+
+export async function getProducerSales(userId: string): Promise<ProducerSaleRow[]> {
+  const { data, error } = await supabase.rpc('get_producer_sales', { p_user_id: userId });
+  if (error) throw error;
+  return (data as unknown as ProducerSaleRow[]) || [];
+}
+
 export async function getOrdersByUser(userId: string): Promise<Order[]> {
   const { data, error } = await supabase
     .from('orders')

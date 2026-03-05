@@ -232,6 +232,25 @@ export type Database = {
         Returns: boolean
       }
       get_email_by_cpf: { Args: { p_cpf: string }; Returns: string }
+      get_producer_sales: {
+        Args: { p_user_id: string }
+        Returns: {
+          buyer_id: string
+          event_date: string
+          event_id: string
+          event_title: string
+          item_id: string
+          item_quantity: number
+          item_subtotal: number
+          item_unit_price: number
+          location_name: string
+          location_type: string
+          order_created_at: string
+          order_id: string
+          order_status: string
+          total_amount: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
