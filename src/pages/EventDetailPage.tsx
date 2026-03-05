@@ -5,7 +5,7 @@ import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
 import { LocationChip } from '@/components/LocationChip';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, Link2, Copy } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, Link2, Copy, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
@@ -149,10 +149,16 @@ export default function EventDetailPage() {
         </div>
 
         {isOwner ? (
-          <Button className="w-full h-14 text-lg font-display font-bold gradient-accent border-0 rounded-xl glow-secondary"
-            onClick={() => navigate(`/manage-locations/${event.id}`)}>
-            <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
+              onClick={() => navigate(`/dashboard/${event.id}`)}>
+              <BarChart3 className="w-5 h-5 mr-2" /> Dashboard de Vendas
+            </Button>
+            <Button className="w-full h-14 text-lg font-display font-bold gradient-accent border-0 rounded-xl glow-secondary"
+              onClick={() => navigate(`/manage-locations/${event.id}`)}>
+              <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais
+            </Button>
+          </div>
         ) : (
           <Button className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
             onClick={() => navigate(`/tickets/${event.id}`)} disabled={locations.length === 0}>
