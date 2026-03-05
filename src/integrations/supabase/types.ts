@@ -141,6 +141,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cpf: string | null
           created_at: string
           id: string
           name: string
@@ -150,6 +151,7 @@ export type Database = {
           user_type: string
         }
         Insert: {
+          cpf?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -159,6 +161,7 @@ export type Database = {
           user_type?: string
         }
         Update: {
+          cpf?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -228,6 +231,7 @@ export type Database = {
         Args: { loc_id: string; qty: number }
         Returns: boolean
       }
+      get_email_by_cpf: { Args: { p_cpf: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
