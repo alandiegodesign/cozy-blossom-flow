@@ -6,6 +6,10 @@ import { getEvent } from '@/services/eventService';
 import { getLocation } from '@/services/ticketLocationService';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
+import TicketQRCode from '@/components/TicketQRCode';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-400' },
@@ -57,6 +61,7 @@ export default function MyOrdersPage() {
 
 function OrderCard({ order }: { order: { id: string; event_id: string; status: string; total_amount: number; created_at: string } }) {
   const status = STATUS_STYLES[order.status] || STATUS_STYLES.pending;
+  const [showQR, setShowQR] = useState(false);
 
   const { data: event } = useQuery({
     queryKey: ['event', order.event_id],
@@ -89,6 +94,22 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
         <span className="text-sm text-muted-foreground">Total</span>
         <span className="font-display font-bold text-lg text-gradient">R$ {Number(order.total_amount).toFixed(2)}</span>
       </div>
+
+      {/* QR Code section */}
+      {order.status === 'confirmed' && (
+        <Collapsible open={showQR} onOpenChange={setShowQR}>
+          <CollapsibleTrigger className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+            <ChevronDown className={`w-4 h-4 transition-transform ${showQR ? 'rotate-180' : ''}`} />
+            {showQR ? 'Ocultar QR Code' : 'Mostrar QR Code do Ingresso'}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="flex flex-col items-center py-4 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-3">Apresente este QR Code na entrada do evento</p>
+              <TicketQRCode orderId={order.id} size={180} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </motion.div>
   );
 }
