@@ -12,7 +12,7 @@ import { LocationType } from '@/services/ticketLocationService';
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const isProdutor = profile?.user_type === 'produtor';
 
   const { data: event, isLoading: loadingEvent } = useQuery({
@@ -26,6 +26,9 @@ export default function EventDetailPage() {
     queryFn: () => getLocationsByEvent(id!),
     enabled: !!id,
   });
+
+  // Only the creator (producer) can manage this event
+  const isOwner = isProdutor && event?.created_by === user?.id;
 
   if (loadingEvent) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!event) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Evento não encontrado</p></div>;
@@ -42,7 +45,7 @@ export default function EventDetailPage() {
         <button onClick={() => navigate('/')} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        {isProdutor && (
+        {isOwner && (
           <button onClick={() => navigate(`/manage-locations/${event.id}`)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
             <Settings className="w-5 h-5" />
           </button>
@@ -85,7 +88,7 @@ export default function EventDetailPage() {
           {locations.length === 0 && <p className="text-sm text-muted-foreground">Nenhum local cadastrado ainda.</p>}
         </div>
 
-        {isProdutor ? (
+        {isOwner ? (
           <Button className="w-full h-14 text-lg font-display font-bold gradient-accent border-0 rounded-xl glow-secondary"
             onClick={() => navigate(`/manage-locations/${event.id}`)}>
             <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais

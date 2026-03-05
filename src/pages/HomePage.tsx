@@ -1,23 +1,25 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getEvents } from '@/services/eventService';
+import { getEvents, getEventsByCreator } from '@/services/eventService';
 import { EventCard } from '@/components/EventCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Ticket, LogOut, ShoppingBag } from 'lucide-react';
+import { Plus, Search, Ticket, LogOut, ShoppingBag, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [search, setSearch] = useState('');
   const isProdutor = profile?.user_type === 'produtor';
 
+  // Producer sees only their events, Client sees all
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: getEvents,
+    queryKey: isProdutor ? ['my-events', user?.id] : ['events'],
+    queryFn: () => isProdutor ? getEventsByCreator(user!.id) : getEvents(),
+    enabled: isProdutor ? !!user : true,
   });
 
   const filtered = useMemo(() => {
@@ -57,16 +59,30 @@ export default function HomePage() {
               {isProdutor ? '🎬 Produtor' : '🎫 Cliente'}
             </span>
           </p>
-          <p className="text-white/60 text-xs mb-4">{isProdutor ? 'Gerencie seus eventos' : 'Encontre os melhores eventos'}</p>
+          <p className="text-white/60 text-xs mb-4">
+            {isProdutor ? 'Gerencie seus eventos' : 'Encontre os melhores eventos da comunidade'}
+          </p>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input placeholder="Buscar eventos..." value={search} onChange={e => setSearch(e.target.value)}
+            <Input placeholder={isProdutor ? 'Buscar meus eventos...' : 'Buscar eventos...'} value={search} onChange={e => setSearch(e.target.value)}
               className="pl-10 bg-background/90 backdrop-blur border-0 h-12 rounded-xl text-foreground" />
           </div>
         </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-6 -mt-6">
+        {isProdutor && !isLoading && (
+          <div className="mb-4 bg-card rounded-2xl border border-border p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-secondary" />
+              <div>
+                <p className="font-display font-semibold text-sm">{events.length} evento{events.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-muted-foreground">Criados por você</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
         ) : (
@@ -81,7 +97,10 @@ export default function HomePage() {
         )}
         {!isLoading && filtered.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="font-display text-lg">Nenhum evento encontrado</p>
+            <p className="font-display text-lg">
+              {isProdutor ? 'Você ainda não criou eventos' : 'Nenhum evento encontrado'}
+            </p>
+            {isProdutor && <p className="text-sm mt-1">Toque no botão + para criar seu primeiro evento!</p>}
           </div>
         )}
       </div>
