@@ -4,14 +4,14 @@ import { getEvent } from '@/services/eventService';
 import { useAuth } from '@/contexts/AuthContext';
 import { createOrder, CartItem } from '@/services/orderService';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Music, Star, Crown, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 const ICONS: Record<LocationType, React.ElementType> = {
-  pista: Music, vip: Star, camarote: Crown, bistro: UtensilsCrossed,
+  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
 };
 
 interface CheckoutItem extends CartItem {

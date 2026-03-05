@@ -5,9 +5,10 @@ import { getEvent, getEventsByCreator } from '@/services/eventService';
 import { getLocationsByEvent, createLocation, deleteLocation, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, Copy, Layers } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ArrowLeft, Plus, Trash2, Copy, Layers, Check, Users, Star, Crown, UtensilsCrossed } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,12 +16,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 
-const TYPES: { value: LocationType; label: string }[] = [
-  { value: 'pista', label: 'Pista' },
-  { value: 'vip', label: 'VIP' },
-  { value: 'camarote', label: 'Camarote' },
-  { value: 'bistro', label: 'Bistrô' },
-];
+const LOCATION_TYPES = [
+  { value: 'pista', label: 'Pista', icon: Users },
+  { value: 'vip', label: 'Área VIP', icon: Star },
+  { value: 'camarote', label: 'Camarote individual', icon: Crown },
+  { value: 'camarote_grupo', label: 'Camarote em grupo', icon: Users },
+  { value: 'bistro', label: 'Bistrô', icon: UtensilsCrossed },
+] as const;
+
+type ExtendedLocationType = typeof LOCATION_TYPES[number]['value'];
 
 export default function ManageLocationsPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -40,7 +44,6 @@ export default function ManageLocationsPage() {
     enabled: !!eventId,
   });
 
-  // For copying from previous events
   const { data: myEvents = [] } = useQuery({
     queryKey: ['my-events', user?.id],
     queryFn: () => getEventsByCreator(user!.id),
@@ -49,22 +52,25 @@ export default function ManageLocationsPage() {
 
   const previousEvents = myEvents.filter(e => e.id !== eventId);
 
-  // Single add form
-  const [name, setName] = useState('');
-  const [type, setType] = useState<LocationType>('pista');
+  // Sectors toggle
+  const [useSectors, setUseSectors] = useState(false);
+  const [sectorName, setSectorName] = useState('');
+
+  // Form state
+  const [selectedType, setSelectedType] = useState<ExtendedLocationType>('pista');
+  const [name, setName] = useState('Pista');
+  const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [description, setDescription] = useState('');
 
-  // Batch add form
-  const [batchType, setBatchType] = useState<LocationType>('camarote');
+  // Batch state
   const [batchQuantity, setBatchQuantity] = useState('');
-  const [batchPrice, setBatchPrice] = useState('');
-  const [batchDescription, setBatchDescription] = useState('');
+  const [batchLoading, setBatchLoading] = useState(false);
 
   // Copy dialog
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyingEventId, setCopyingEventId] = useState<string | null>(null);
+  const [copyLoading, setCopyLoading] = useState(false);
 
   const { data: copyLocations = [] } = useQuery({
     queryKey: ['locations', copyingEventId],
@@ -76,7 +82,8 @@ export default function ManageLocationsPage() {
     mutationFn: createLocation,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
-      setName(''); setPrice(''); setQuantity(''); setDescription('');
+      setName(LOCATION_TYPES.find(t => t.value === selectedType)?.label || '');
+      setPrice(''); setQuantity(''); setDescription('');
       toast.success('Local adicionado!');
     },
     onError: () => toast.error('Erro ao adicionar local'),
@@ -90,55 +97,58 @@ export default function ManageLocationsPage() {
     },
   });
 
+  const handleTypeSelect = (type: ExtendedLocationType) => {
+    setSelectedType(type);
+    const label = LOCATION_TYPES.find(t => t.value === type)?.label || '';
+    setName(label);
+  };
+
+  const isBatchType = selectedType === 'camarote' || selectedType === 'camarote_grupo' || selectedType === 'bistro';
+
   const handleAdd = () => {
-    if (!name || !price || !quantity) { toast.error('Preencha todos os campos'); return; }
+    if (!name || !price || !quantity) { toast.error('Preencha todos os campos obrigatórios'); return; }
+    const finalName = useSectors && sectorName ? `${sectorName} - ${name}` : name;
     addMutation.mutate({
       event_id: eventId!,
-      location_type: type,
-      name,
+      location_type: selectedType,
+      name: finalName,
       description,
       price: parseFloat(price),
       quantity: parseInt(quantity),
       available_quantity: parseInt(quantity),
-      color: getLocationColor(type),
+      color: getLocationColor(selectedType),
     });
   };
 
-  const [batchLoading, setBatchLoading] = useState(false);
-
   const handleBatchAdd = async () => {
     const qty = parseInt(batchQuantity);
-    const priceVal = parseFloat(batchPrice);
-    if (!qty || qty < 1 || !priceVal) { toast.error('Preencha quantidade e preço'); return; }
-
-    const label = TYPES.find(t => t.value === batchType)?.label || batchType;
+    if (!qty || qty < 1 || !price) { toast.error('Preencha quantidade e preço'); return; }
+    const label = LOCATION_TYPES.find(t => t.value === selectedType)?.label || selectedType;
+    const prefix = useSectors && sectorName ? `${sectorName} - ${label}` : label;
     setBatchLoading(true);
-
     try {
       for (let i = 1; i <= qty; i++) {
         const num = String(i).padStart(2, '0');
         await createLocation({
           event_id: eventId!,
-          location_type: batchType,
-          name: `${label} - ${num}`,
-          description: batchDescription,
-          price: priceVal,
+          location_type: selectedType,
+          name: `${prefix} - ${num}`,
+          description,
+          price: parseFloat(price),
           quantity: 1,
           available_quantity: 1,
-          color: getLocationColor(batchType),
+          color: getLocationColor(selectedType),
         });
       }
       queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
-      setBatchQuantity(''); setBatchPrice(''); setBatchDescription('');
-      toast.success(`${qty} ${label}(s) criados com sucesso!`);
+      setBatchQuantity(''); setPrice(''); setDescription('');
+      toast.success(`${qty} ${label}(s) criados!`);
     } catch {
-      toast.error('Erro ao criar locais em lote');
+      toast.error('Erro ao criar em lote');
     } finally {
       setBatchLoading(false);
     }
   };
-
-  const [copyLoading, setCopyLoading] = useState(false);
 
   const handleCopyLocations = async () => {
     if (!copyLocations.length) return;
@@ -167,7 +177,6 @@ export default function ManageLocationsPage() {
     }
   };
 
-  // Group locations by type for display
   const groupedLocations = locations.reduce((acc, loc) => {
     const key = loc.location_type;
     if (!acc[key]) acc[key] = [];
@@ -200,9 +209,7 @@ export default function ManageLocationsPage() {
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Copiar Locais</DialogTitle>
-              </DialogHeader>
+              <DialogHeader><DialogTitle>Copiar Locais</DialogTitle></DialogHeader>
               <div className="space-y-3 max-h-80 overflow-y-auto">
                 {previousEvents.map(ev => (
                   <button key={ev.id} onClick={() => setCopyingEventId(ev.id)}
@@ -213,12 +220,9 @@ export default function ManageLocationsPage() {
                 ))}
               </div>
               {copyingEventId && copyLocations.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{copyLocations.length} locais encontrados</p>
-                  <Button onClick={handleCopyLocations} disabled={copyLoading} className="w-full gradient-primary border-0 rounded-xl">
-                    {copyLoading ? 'Copiando...' : `Copiar ${copyLocations.length} locais`}
-                  </Button>
-                </div>
+                <Button onClick={handleCopyLocations} disabled={copyLoading} className="w-full gradient-primary border-0 rounded-xl">
+                  {copyLoading ? 'Copiando...' : `Copiar ${copyLocations.length} locais`}
+                </Button>
               )}
               {copyingEventId && copyLocations.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">Nenhum local neste evento</p>
@@ -227,60 +231,99 @@ export default function ManageLocationsPage() {
           </Dialog>
         )}
 
-        {/* Single add */}
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-            <Plus className="w-5 h-5 text-secondary" /> Adicionar Local
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do local" className="h-12 rounded-xl" />
-            <Select value={type} onValueChange={v => setType(v as LocationType)}>
-              <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+        {/* Sectors toggle */}
+        <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-display font-semibold text-sm">Ativar setores neste evento (organizar locais por setor)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Ao ativar, você organiza os locais por setor (ex.: Setor A, Camarote, Bistrô). Se não quiser usar setores, deixe desativado.</p>
+            </div>
+            <Switch checked={useSectors} onCheckedChange={setUseSectors} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço (R$)" className="h-12 rounded-xl" />
-            <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade" className="h-12 rounded-xl" />
+          {useSectors && (
+            <Input
+              value={sectorName}
+              onChange={e => setSectorName(e.target.value)}
+              placeholder="Nome do setor (ex: Setor A)"
+              className="h-12 rounded-xl"
+            />
+          )}
+        </div>
+
+        {/* Add location form */}
+        <div className="bg-card rounded-2xl border border-border p-6 space-y-5">
+          {/* Type selection chips */}
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Tipo de local</p>
+            <div className="flex flex-wrap gap-2">
+              {LOCATION_TYPES.map(t => {
+                const isActive = selectedType === t.value;
+                return (
+                  <button
+                    key={t.value}
+                    onClick={() => handleTypeSelect(t.value)}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-all
+                      ${isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-transparent text-foreground border-border hover:border-primary/50'
+                      }`}
+                  >
+                    {isActive && <Check className="w-4 h-4" />}
+                    <t.icon className="w-4 h-4" />
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <Input value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição (opcional)" className="h-12 rounded-xl" />
+
+          {/* Form fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Nome do local</label>
+              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do local" className="h-12 rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descrição" className="rounded-xl resize-none" rows={2} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Preço (R$)</label>
+              <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço (R$)" className="h-12 rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Quantidade de ingressos disponíveis para venda</label>
+              <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade de ingressos disponíveis para venda" className="h-12 rounded-xl" />
+              <p className="text-xs text-muted-foreground mt-1">Total de ingressos individuais que poderão ser vendidos neste local.</p>
+            </div>
+          </div>
+
+          {/* Batch option for camarote/bistro types */}
+          {isBatchType && (
+            <div className="border-t border-border pt-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-accent" />
+                <p className="text-sm font-semibold">Criar em lote</p>
+              </div>
+              <p className="text-xs text-muted-foreground">Ex: 10 unidades serão nomeadas automaticamente ({LOCATION_TYPES.find(t => t.value === selectedType)?.label} - 01, 02...)</p>
+              <Input type="number" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} placeholder="Quantidade de unidades (ex: 10)" className="h-12 rounded-xl" />
+              <Button onClick={handleBatchAdd} disabled={batchLoading || !price} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+                {batchLoading ? 'Criando...' : 'Criar em Lote'}
+              </Button>
+            </div>
+          )}
+
           <Button onClick={handleAdd} disabled={addMutation.isPending} className="w-full h-12 gradient-accent border-0 rounded-xl font-display font-bold">
-            {addMutation.isPending ? 'Adicionando...' : 'Adicionar'}
+            {addMutation.isPending ? 'Adicionando...' : 'Adicionar Local'}
           </Button>
         </div>
 
-        {/* Batch add for camarotes/bistros */}
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-            <Layers className="w-5 h-5 text-accent" /> Criar em Lote
-          </h2>
-          <p className="text-xs text-muted-foreground">Crie múltiplos locais de uma vez. Ex: 10 Camarotes serão nomeados Camarote - 01, Camarote - 02...</p>
-          <div className="grid grid-cols-2 gap-4">
-            <Select value={batchType} onValueChange={v => setBatchType(v as LocationType)}>
-              <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Input type="number" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} placeholder="Quantidade (ex: 10)" className="h-12 rounded-xl" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input type="number" value={batchPrice} onChange={e => setBatchPrice(e.target.value)} placeholder="Preço unitário (R$)" className="h-12 rounded-xl" />
-            <Input value={batchDescription} onChange={e => setBatchDescription(e.target.value)} placeholder="Descrição (opcional)" className="h-12 rounded-xl" />
-          </div>
-          <Button onClick={handleBatchAdd} disabled={batchLoading} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
-            {batchLoading ? 'Criando...' : 'Criar em Lote'}
-          </Button>
-        </div>
-
-        {/* Locations grouped by type - collapsible */}
+        {/* Locations grouped by type */}
         <div className="space-y-3">
           <h2 className="font-display font-semibold text-lg">Locais Cadastrados ({locations.length})</h2>
 
           {Object.entries(groupedLocations).map(([type, locs]) => {
-            const label = TYPES.find(t => t.value === type)?.label || type;
+            const label = LOCATION_TYPES.find(t => t.value === type)?.label || type;
             return (
               <Collapsible key={type} defaultOpen={locs.length <= 5}>
                 <CollapsibleTrigger className="w-full bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
@@ -289,7 +332,7 @@ export default function ManageLocationsPage() {
                     <span className="font-display font-semibold text-sm">{label}</span>
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 mt-2">
                   {locs.map(loc => (
