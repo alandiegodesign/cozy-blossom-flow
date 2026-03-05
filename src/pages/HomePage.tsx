@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getEvents } from '@/services/eventService';
 import { EventCard } from '@/components/EventCard';
 import { Input } from '@/components/ui/input';
@@ -12,8 +13,12 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const [search, setSearch] = useState('');
-  const events = getEvents();
   const isProdutor = profile?.user_type === 'produtor';
+
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ['events'],
+    queryFn: getEvents,
+  });
 
   const filtered = useMemo(() => {
     if (!search.trim()) return events;
@@ -28,7 +33,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Header */}
       <div className="gradient-primary px-6 pt-12 pb-16 rounded-b-[2rem]">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
@@ -38,22 +42,11 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               {!isProdutor && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-white/20"
-                  onClick={() => navigate('/my-orders')}
-                >
-                  <ShoppingBag className="w-4 h-4 mr-1" />
-                  Pedidos
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
+                  <ShoppingBag className="w-4 h-4 mr-1" /> Pedidos
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={handleLogout}
-              >
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={handleLogout}>
                 <LogOut className="w-5 h-5" />
               </Button>
             </div>
@@ -64,54 +57,39 @@ export default function HomePage() {
               {isProdutor ? '🎬 Produtor' : '🎫 Cliente'}
             </span>
           </p>
-          <p className="text-white/60 text-xs mb-4">
-            {isProdutor ? 'Gerencie seus eventos' : 'Encontre os melhores eventos'}
-          </p>
+          <p className="text-white/60 text-xs mb-4">{isProdutor ? 'Gerencie seus eventos' : 'Encontre os melhores eventos'}</p>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Buscar eventos..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-10 bg-background/90 backdrop-blur border-0 h-12 rounded-xl text-foreground"
-            />
+            <Input placeholder="Buscar eventos..." value={search} onChange={e => setSearch(e.target.value)}
+              className="pl-10 bg-background/90 backdrop-blur border-0 h-12 rounded-xl text-foreground" />
           </div>
         </div>
       </div>
 
-      {/* Events Grid */}
       <div className="max-w-2xl mx-auto px-6 -mt-6">
-        <motion.div
-          className="grid gap-4"
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-        >
-          {filtered.map(event => (
-            <motion.div
-              key={event.id}
-              variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <EventCard event={event} />
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {filtered.length === 0 && (
+        {isLoading ? (
+          <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
+        ) : (
+          <motion.div className="grid gap-4" initial="hidden" animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
+            {filtered.map(event => (
+              <motion.div key={event.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
+                <EventCard event={event} />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+        {!isLoading && filtered.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
             <p className="font-display text-lg">Nenhum evento encontrado</p>
           </div>
         )}
       </div>
 
-      {/* FAB - only for produtores */}
       {isProdutor && (
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           onClick={() => navigate('/create-event')}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-accent text-white shadow-lg flex items-center justify-center glow-secondary z-50"
-        >
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-accent text-white shadow-lg flex items-center justify-center glow-secondary z-50">
           <Plus className="w-7 h-7" />
         </motion.button>
       )}

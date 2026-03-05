@@ -1,25 +1,9 @@
-import { Order, OrderItem } from '@/types/models';
-import { getItems, setItems, generateId, now } from './storage';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
 import { decreaseAvailability } from './ticketLocationService';
 
-const ORDERS_KEY = 'ticketapp_orders';
-const ITEMS_KEY = 'ticketapp_order_items';
-
-export function getOrders(): Order[] {
-  return getItems<Order>(ORDERS_KEY);
-}
-
-export function getOrdersByUser(userId: string): Order[] {
-  return getOrders().filter(o => o.user_id === userId);
-}
-
-export function getOrder(id: string): Order | undefined {
-  return getOrders().find(o => o.id === id);
-}
-
-export function getOrderItems(orderId: string): OrderItem[] {
-  return getItems<OrderItem>(ITEMS_KEY).filter(i => i.order_id === orderId);
-}
+export type Order = Tables<'orders'>;
+export type OrderItem = Tables<'order_items'>;
 
 export interface CartItem {
   ticket_location_id: string;
@@ -27,53 +11,63 @@ export interface CartItem {
   unit_price: number;
 }
 
-export function createOrder(eventId: string, userId: string, items: CartItem[]): Order | null {
-  // Decrease availability
+export async function getOrdersByUser(userId: string): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getOrderItems(orderId: string): Promise<OrderItem[]> {
+  const { data, error } = await supabase
+    .from('order_items')
+    .select('*')
+    .eq('order_id', orderId);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createOrder(
+  eventId: string,
+  userId: string,
+  items: CartItem[]
+): Promise<Order | null> {
+  // Decrease availability for each item
   for (const item of items) {
-    if (!decreaseAvailability(item.ticket_location_id, item.quantity)) {
-      return null;
-    }
+    const success = await decreaseAvailability(item.ticket_location_id, item.quantity);
+    if (!success) return null;
   }
 
-  const orderId = generateId();
   const totalAmount = items.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);
 
-  const order: Order = {
-    id: orderId,
-    event_id: eventId,
-    user_id: userId,
-    total_amount: totalAmount,
-    status: 'confirmed',
-    created_at: now(),
-    updated_at: now(),
-  };
+  // Create order
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .insert({
+      event_id: eventId,
+      user_id: userId,
+      total_amount: totalAmount,
+      status: 'confirmed',
+    })
+    .select()
+    .single();
 
-  const orderItems: OrderItem[] = items.map(item => ({
-    id: generateId(),
-    order_id: orderId,
+  if (orderError) throw orderError;
+
+  // Create order items
+  const orderItems = items.map(item => ({
+    order_id: order.id,
     ticket_location_id: item.ticket_location_id,
     quantity: item.quantity,
     unit_price: item.unit_price,
     subtotal: item.quantity * item.unit_price,
-    created_at: now(),
-    updated_at: now(),
   }));
 
-  const allOrders = getOrders();
-  setItems(ORDERS_KEY, [...allOrders, order]);
-
-  const allItems = getItems<OrderItem>(ITEMS_KEY);
-  setItems(ITEMS_KEY, [...allItems, ...orderItems]);
+  const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+  if (itemsError) throw itemsError;
 
   return order;
-}
-
-export function updateOrderStatus(id: string, status: Order['status']): void {
-  const orders = getOrders();
-  const idx = orders.findIndex(o => o.id === id);
-  if (idx !== -1) {
-    orders[idx].status = status;
-    orders[idx].updated_at = now();
-    setItems(ORDERS_KEY, orders);
-  }
 }

@@ -1,5 +1,4 @@
-import { LocationType } from '@/types/models';
-import { getLocationColor } from '@/services/ticketLocationService';
+import { LocationType, getLocationColor } from '@/services/ticketLocationService';
 import { Music, Star, Crown, UtensilsCrossed } from 'lucide-react';
 
 interface LocationChipProps {
@@ -28,7 +27,7 @@ export function LocationChip({ type, name, price, available, className = '' }: L
     >
       <Icon className="w-4 h-4" />
       <span>{name}</span>
-      <span className="font-bold">R$ {price.toFixed(2)}</span>
+      <span className="font-bold">R$ {Number(price).toFixed(2)}</span>
       <span className="text-xs opacity-70">({available} disp.)</span>
     </div>
   );
