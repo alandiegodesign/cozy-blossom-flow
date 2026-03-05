@@ -43,6 +43,11 @@ export default function HomePage() {
               <h1 className="font-display font-bold text-2xl text-white">TicketVibe</h1>
             </div>
             <div className="flex items-center gap-2">
+              {isProdutor && (
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/dashboard')}>
+                  <BarChart3 className="w-4 h-4 mr-1" /> Vendas
+                </Button>
+              )}
               {!isProdutor && (
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
                   <ShoppingBag className="w-4 h-4 mr-1" /> Pedidos

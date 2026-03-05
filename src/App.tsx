@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
+import ProducerDashboardPage from "./pages/ProducerDashboardPage";
 import ManageLocationsPage from "./pages/ManageLocationsPage";
 import TicketSelectionPage from "./pages/TicketSelectionPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -50,6 +51,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
     <Route path="/event/:id" element={<ProtectedRoute><EventDetailPage /></ProtectedRoute>} />
     <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
+    <Route path="/dashboard" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
     <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
     <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
     <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
