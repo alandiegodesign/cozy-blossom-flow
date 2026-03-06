@@ -84,7 +84,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
-                <ShoppingBag className="w-4 h-4 mr-1" /> Pedidos
+                <ShoppingBag className="w-4 h-4 mr-1" /> Ingressos
               </Button>
               {clientView && (
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/')}>
