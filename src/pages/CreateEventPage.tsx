@@ -276,17 +276,17 @@ export default function CreateEventPage() {
                 <MapPin className="w-4 h-4 text-primary" /> Mapa do Evento
               </h2>
               {mapImage ? (
-                <div className="relative rounded-xl overflow-hidden border border-border">
-                  <img src={mapImage} alt="Mapa" className="w-full h-40 object-cover" />
+                <div className="relative rounded-xl overflow-hidden border border-border aspect-square">
+                  <img src={mapImage} alt="Mapa" className="w-full h-full object-cover" />
                   <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setMapImage('')}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
               ) : (
                 <button type="button" onClick={() => mapRef.current?.click()}
-                  className="w-full h-40 rounded-xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
-                  <ImagePlus className="w-8 h-8" />
-                  <span className="text-sm">Imagem do mapa</span>
+                  className="w-full aspect-square rounded-xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
+                  <ImagePlus className="w-10 h-10" />
+                  <span className="text-sm">1080x1080</span>
                 </button>
               )}
               <input ref={mapRef} type="file" accept="image/*" className="hidden" onChange={handleMapFile} />
