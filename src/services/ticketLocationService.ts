@@ -24,9 +24,20 @@ export async function getLocationsByEvent(eventId: string): Promise<TicketLocati
     .from('ticket_locations')
     .select('*')
     .eq('event_id', eventId)
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
+}
+
+export async function updateLocationSortOrders(updates: { id: string; sort_order: number }[]): Promise<void> {
+  for (const u of updates) {
+    const { error } = await supabase
+      .from('ticket_locations')
+      .update({ sort_order: u.sort_order } as any)
+      .eq('id', u.id);
+    if (error) throw error;
+  }
 }
 
 export async function getLocation(id: string): Promise<TicketLocation | null> {
