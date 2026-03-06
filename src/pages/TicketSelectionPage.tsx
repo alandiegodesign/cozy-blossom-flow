@@ -66,22 +66,28 @@ export default function TicketSelectionPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
-        {locations.filter(loc => (loc as any).is_active !== false).map(loc => {
+        {locations.map(loc => {
           const Icon = ICONS[loc.location_type as LocationType] || Music;
+          const isSoldOut = loc.is_active === false || loc.available_quantity <= 0;
           return (
-            <div key={loc.id} className="bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4">
+            <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isSoldOut ? 'opacity-60' : ''}`}>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
                   <span className="font-display font-semibold">{loc.name}</span>
+                  {isSoldOut && (
+                    <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{loc.description}</p>
                 <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>
                   R$ {Number(loc.price).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>
+                {!isSoldOut && <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>}
               </div>
-              <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />
+              {!isSoldOut && (
+                <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />
+              )}
             </div>
           );
         })}
