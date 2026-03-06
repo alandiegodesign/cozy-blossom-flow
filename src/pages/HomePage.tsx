@@ -153,11 +153,7 @@ function ProducerHome({
   filtered: any[];
   navigate: (path: string) => void;
 }) {
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const initials = (profile?.name || 'U').charAt(0).toUpperCase();
-
-  const nextSlide = () => setCarouselIndex(i => Math.min(i + 1, upcomingEvents.length - 1));
-  const prevSlide = () => setCarouselIndex(i => Math.max(i - 1, 0));
 
   return (
     <div className="min-h-screen pb-24">
@@ -206,20 +202,9 @@ function ProducerHome({
 
             {upcomingEvents.length > 0 ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{carouselIndex + 1} / {upcomingEvents.length}</span>
-                  <div className="flex gap-1">
-                    <button onClick={prevSlide} disabled={carouselIndex === 0} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors">
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button onClick={nextSlide} disabled={carouselIndex >= upcomingEvents.length - 1} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <motion.div key={carouselIndex} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
-                  <EventCard event={upcomingEvents[carouselIndex]} />
-                </motion.div>
+                {upcomingEvents.map(event => (
+                  <EventCard key={event.id} event={event} />
+                ))}
               </div>
             ) : (
               <div className="bg-card rounded-2xl border border-border p-8 text-center text-muted-foreground">
