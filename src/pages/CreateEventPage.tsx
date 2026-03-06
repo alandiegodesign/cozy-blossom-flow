@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import { ZoomableImage } from '@/components/ZoomableImage';
 
 const MUSIC_TAGS = ['DJ', 'MC', 'Eletrônica', 'Sertanejo', 'Rock', 'POP', 'Techno', 'Funk', 'Kpop', 'RAP', 'Pagode'];
 const ENVIRONMENT_TAGS = ['Espaços Cobertos', 'Espaços Climatizados', 'Ar Livre'];
@@ -332,9 +333,9 @@ export default function CreateEventPage() {
                 <MapPin className="w-4 h-4 text-primary" /> Mapa do Evento
               </h2>
               {mapImage ? (
-                <div className="relative rounded-xl overflow-hidden border border-border aspect-square">
-                  <img src={mapImage} alt="Mapa" className="w-full h-full object-cover" />
-                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setMapImage('')}>
+                <div className="relative">
+                  <ZoomableImage src={mapImage} alt="Mapa" />
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full z-10" onClick={() => setMapImage('')}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>

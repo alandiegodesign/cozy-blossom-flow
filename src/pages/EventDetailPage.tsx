@@ -12,6 +12,7 @@ import { LocationType } from '@/services/ticketLocationService';
 import { useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ZoomableImage } from '@/components/ZoomableImage';
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -186,7 +187,7 @@ export default function EventDetailPage() {
             <h2 className="font-display font-semibold text-lg flex items-center gap-2">
               <MapPin className="w-5 h-5 text-secondary" /> Mapa do Evento
             </h2>
-            <img src={event.map_image} alt="Mapa" className="w-full rounded-xl border border-border" />
+            <ZoomableImage src={event.map_image} alt="Mapa do evento" />
           </div>
         )}
 
