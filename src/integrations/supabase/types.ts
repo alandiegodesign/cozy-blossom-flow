@@ -213,6 +213,7 @@ export type Database = {
           name: string
           price: number
           quantity: number
+          sort_order: number
           updated_at: string
         }
         Insert: {
@@ -228,6 +229,7 @@ export type Database = {
           name: string
           price?: number
           quantity?: number
+          sort_order?: number
           updated_at?: string
         }
         Update: {
@@ -243,6 +245,7 @@ export type Database = {
           name?: string
           price?: number
           quantity?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: [

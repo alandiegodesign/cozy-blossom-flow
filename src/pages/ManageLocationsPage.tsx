@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, getEventsByCreator } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, getLocationColor, LocationType } from '@/services/ticketLocationService';
+import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, updateLocationSortOrders, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableLocationCard } from '@/components/SortableLocationCard';
 
 const LOCATION_TYPES = [
   { value: 'pista', label: 'Pista', icon: Users },
@@ -117,6 +120,34 @@ export default function ManageLocationsPage() {
     },
     onError: () => toast.error('Erro ao alterar disponibilidade'),
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const reorderMutation = useMutation({
+    mutationFn: updateLocationSortOrders,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+    },
+    onError: () => toast.error('Erro ao reordenar'),
+  });
+
+  const handleDragEnd = (event: DragEndEvent, locs: typeof locations) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = locs.findIndex(l => l.id === active.id);
+    const newIndex = locs.findIndex(l => l.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(locs, oldIndex, newIndex);
+    const updates = reordered.map((loc, i) => ({ id: loc.id, sort_order: i }));
+    queryClient.setQueryData(['locations', eventId], (old: typeof locations) => {
+      if (!old) return old;
+      const otherLocs = old.filter(l => !locs.some(gl => gl.id === l.id));
+      return [...otherLocs, ...reordered.map((l, i) => ({ ...l, sort_order: i }))].sort((a, b) => ((a as any).sort_order || 0) - ((b as any).sort_order || 0));
+    });
+    reorderMutation.mutate(updates);
+  };
 
   const handleTypeSelect = (type: ExtendedLocationType) => {
     setSelectedType(type);
@@ -385,36 +416,19 @@ export default function ManageLocationsPage() {
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 mt-2">
-                  {locs.map(loc => (
-                    <motion.div key={loc.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                      className={`bg-card rounded-xl border border-border p-4 flex items-center justify-between ml-4 ${(loc as any).is_active === false ? 'opacity-50' : ''}`}>
-                      <div className="flex-1">
-                        <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
-                        {loc.description && <p className="text-xs text-muted-foreground mt-2 ml-1">{loc.description}</p>}
-                        {(loc as any).is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Oculto para clientes</p>}
-                        {(loc as any).is_sold_out === true && (loc as any).is_active !== false && <p className="text-xs text-orange-500 mt-1 ml-1">Marcado como esgotado</p>}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Switch
-                          checked={(loc as any).is_sold_out !== true}
-                          onCheckedChange={(checked) => toggleSoldOutMutation.mutate({ id: loc.id, isSoldOut: !checked })}
-                          title={(loc as any).is_sold_out ? 'Marcar como disponível' : 'Marcar como esgotado'}
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
+                    <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
+                      {locs.map(loc => (
+                        <SortableLocationCard
+                          key={loc.id}
+                          loc={loc}
+                          onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
+                          onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
+                          onDelete={(id) => deleteMutation.mutate(id)}
                         />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleActiveMutation.mutate({ id: loc.id, isActive: (loc as any).is_active === false })}
-                          className="text-muted-foreground hover:text-foreground"
-                          title={(loc as any).is_active === false ? 'Mostrar para clientes' : 'Ocultar para clientes'}
-                        >
-                          {(loc as any).is_active === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(loc.id)} className="text-destructive hover:text-destructive">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+                      ))}
+                    </SortableContext>
+                  </DndContext>
                 </CollapsibleContent>
               </Collapsible>
             );
