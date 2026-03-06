@@ -215,6 +215,7 @@ export type Database = {
           created_at: string
           description: string | null
           event_id: string
+          group_size: number
           id: string
           is_active: boolean
           is_sold_out: boolean
@@ -231,6 +232,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           event_id: string
+          group_size?: number
           id?: string
           is_active?: boolean
           is_sold_out?: boolean
@@ -247,6 +249,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           event_id?: string
+          group_size?: number
           id?: string
           is_active?: boolean
           is_sold_out?: boolean
