@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 
-const MUSIC_TAGS = ['DJ', 'Eletrônica', 'Sertanejo', 'Rock', 'POP', 'Techno', 'Funk', 'Kpop', 'RAP', 'Pagode'];
+const MUSIC_TAGS = ['DJ', 'MC', 'Eletrônica', 'Sertanejo', 'Rock', 'POP', 'Techno', 'Funk', 'Kpop', 'RAP', 'Pagode'];
 const ENVIRONMENT_TAGS = ['Espaços Cobertos', 'Espaços Climatizados', 'Ar Livre'];
 const MAX_CUSTOM_TAGS = 5;
 
