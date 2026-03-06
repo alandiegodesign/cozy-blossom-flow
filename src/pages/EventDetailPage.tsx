@@ -39,7 +39,9 @@ export default function EventDetailPage() {
   });
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const setQty = (locId: string, qty: number) => setQuantities(prev => ({ ...prev, [locId]: qty }));
+  const toggleGroup = (type: string) => setOpenGroups(prev => ({ ...prev, [type]: !prev[type] }));
 
   const ICONS: Record<LocationType, React.ElementType> = {
     pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
