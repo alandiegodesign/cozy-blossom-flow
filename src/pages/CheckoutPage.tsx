@@ -129,6 +129,9 @@ export default function CheckoutPage() {
           className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center gap-2">
           <CheckCircle2 className="w-6 h-6" /> {loading ? 'Processando...' : 'Confirmar Pedido'}
         </Button>
+        <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
+          Descartar pedido
+        </button>
       </motion.div>
     </div>
   );
