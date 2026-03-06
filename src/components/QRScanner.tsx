@@ -87,7 +87,7 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
       clearTimeout(timer);
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
-        scannerRef.current.clear().catch(() => {});
+        scannerRef.current.clear();
         scannerRef.current = null;
       }
     };
