@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, softDeleteEvent, toggleEventVisibility } from '@/services/eventService';
 import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
-import { LocationChip } from '@/components/LocationChip';
+
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { QuantitySelector } from '@/components/QuantitySelector';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ZoomableImage } from '@/components/ZoomableImage';
@@ -35,6 +36,34 @@ export default function EventDetailPage() {
     queryFn: () => getLocationsByEvent(id!),
     enabled: !!id,
   });
+
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const setQty = (locId: string, qty: number) => setQuantities(prev => ({ ...prev, [locId]: qty }));
+
+  const ICONS: Record<LocationType, React.ElementType> = {
+    pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
+  };
+
+  const cartTotal = useMemo(() => {
+    return locations.reduce((sum, loc) => sum + (quantities[loc.id] || 0) * loc.price, 0);
+  }, [locations, quantities]);
+
+  const hasItems = Object.values(quantities).some(q => q > 0);
+
+  const handleBuy = () => {
+    const cartItems = locations
+      .filter(loc => (quantities[loc.id] || 0) > 0)
+      .map(loc => ({
+        ticket_location_id: loc.id,
+        quantity: quantities[loc.id],
+        unit_price: loc.price,
+        name: loc.name,
+        type: loc.location_type as LocationType,
+        color: loc.color || '#9D4EDD',
+        group_size: loc.group_size || 1,
+      }));
+    navigate(`/checkout/${id}`, { state: { items: cartItems, total: cartTotal } });
+  };
 
   // Only the creator (producer) can manage this event
   const isOwner = isProdutor && !clientView && event?.created_by === user?.id;
@@ -191,15 +220,40 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        <div className="space-y-3">
-          <h2 className="font-display font-semibold text-lg">Locais Disponíveis</h2>
-          <div className="flex flex-wrap gap-2">
-            {locations.map(loc => (
-              <LocationChip key={loc.id} type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
-            ))}
+        {!isOwner && locations.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="font-display font-semibold text-lg">Selecionar Ingressos</h2>
+            {locations.filter(loc => loc.is_active !== false).map(loc => {
+              const Icon = ICONS[loc.location_type as LocationType] || Music;
+              const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+              return (
+                <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isSoldOut ? 'opacity-60' : ''}`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
+                      <span className="font-display font-semibold">{loc.name}</span>
+                      {isSoldOut && (
+                        <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
+                      {loc.description}
+                    </p>
+                    <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>
+                      R$ {Number(loc.price).toFixed(2)}
+                    </p>
+                    {!isSoldOut && <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>}
+                  </div>
+                  {!isSoldOut && (
+                    <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />
+                  )}
+                </div>
+              );
+            })}
+            {locations.filter(loc => loc.is_active !== false).length === 0 && <p className="text-sm text-muted-foreground">Nenhum ingresso disponível.</p>}
           </div>
-          {locations.length === 0 && <p className="text-sm text-muted-foreground">Nenhum local cadastrado ainda.</p>}
-        </div>
+        )}
 
         {isOwner ? (
           <div className="flex flex-col gap-3">
@@ -233,12 +287,19 @@ export default function EventDetailPage() {
               </AlertDialogContent>
             </AlertDialog>
           </div>
-        ) : (
-          <Button className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
-            onClick={() => navigate(`/tickets/${event.id}`)} disabled={locations.length === 0}>
-            Comprar Ingressos
-          </Button>
-        )}
+        ) : hasItems ? (
+          <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur border-t border-border p-4 z-50">
+            <div className="max-w-2xl mx-auto flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="font-display font-bold text-2xl text-gradient">R$ {cartTotal.toFixed(2)}</p>
+              </div>
+              <Button onClick={handleBuy} className="h-12 px-8 gradient-primary border-0 rounded-xl font-display font-bold glow-primary">
+                Finalizar Compra
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </motion.div>
     </div>
   );
