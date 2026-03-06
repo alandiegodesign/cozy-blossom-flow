@@ -61,7 +61,7 @@ export default function TicketSelectionPage() {
             <ArrowLeft className="w-5 h-5" /> Voltar
           </button>
           <h1 className="font-display font-bold text-2xl text-white">Selecionar Ingressos</h1>
-          <p className="text-white/70 text-sm mt-1">{event.title}</p>
+          <p className="text-white/70 text-sm mt-1">{event.title} · {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
       </div>
 

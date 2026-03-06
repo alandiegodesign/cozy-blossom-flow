@@ -81,7 +81,11 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-display font-semibold">{event?.title || 'Evento'}</h3>
-          <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('pt-BR')}</p>
+          <p className="text-xs text-muted-foreground">
+            {event?.date
+              ? new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' às ' + (event.time || '')
+              : new Date(order.created_at).toLocaleDateString('pt-BR')}
+          </p>
         </div>
         <span className={`text-xs font-semibold px-3 py-1 rounded-full ${status.className}`}>{status.label}</span>
       </div>
