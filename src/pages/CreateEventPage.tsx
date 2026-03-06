@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   ArrowLeft, ImagePlus, X, Clock, CalendarIcon, MapPin,
   Music, Shield, Sparkles
@@ -41,6 +42,7 @@ export default function CreateEventPage() {
   const [locationName, setLocationName] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showPolicies, setShowPolicies] = useState(false);
   const [policies, setPolicies] = useState<Record<string, string>>({});
 
   const toggleTag = (tag: string) => {
@@ -243,22 +245,28 @@ export default function CreateEventPage() {
 
               {/* Policies */}
               <section className="bg-card rounded-2xl border border-border p-6 space-y-4">
-                <h2 className="font-display font-bold text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" /> Políticas do Evento
-                </h2>
-                <div className="space-y-3">
-                  {POLICY_OPTIONS.map(p => (
-                    <div key={p.id} className="space-y-1">
-                      <label className="text-xs font-medium text-primary">{p.label}</label>
-                      <Input
-                        value={policies[p.id] || ''}
-                        onChange={e => updatePolicy(p.id, e.target.value)}
-                        placeholder={p.placeholder}
-                        className="h-9 rounded-lg text-xs"
-                      />
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary" /> Políticas do Evento
+                  </h2>
+                  <Switch checked={showPolicies} onCheckedChange={setShowPolicies} />
                 </div>
+                <p className="text-xs text-muted-foreground">Ative apenas se o evento exige alguma política específica.</p>
+                {showPolicies && (
+                  <div className="space-y-3">
+                    {POLICY_OPTIONS.map(p => (
+                      <div key={p.id} className="space-y-1">
+                        <label className="text-xs font-medium text-primary">{p.label}</label>
+                        <Input
+                          value={policies[p.id] || ''}
+                          onChange={e => updatePolicy(p.id, e.target.value)}
+                          placeholder={p.placeholder}
+                          className="h-9 rounded-lg text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
 
