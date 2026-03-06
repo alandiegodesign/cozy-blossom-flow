@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, getEventsByCreator } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, getLocationColor, LocationType } from '@/services/ticketLocationService';
+import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -98,6 +98,15 @@ export default function ManageLocationsPage() {
       queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
       toast.success('Local removido');
     },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => toggleLocationActive(id, isActive),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      toast.success('Status do local atualizado!');
+    },
+    onError: () => toast.error('Erro ao alterar status'),
   });
 
   const handleTypeSelect = (type: ExtendedLocationType) => {
@@ -369,14 +378,21 @@ export default function ManageLocationsPage() {
                 <CollapsibleContent className="space-y-2 mt-2">
                   {locs.map(loc => (
                     <motion.div key={loc.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                      className="bg-card rounded-xl border border-border p-4 flex items-center justify-between ml-4">
+                      className={`bg-card rounded-xl border border-border p-4 flex items-center justify-between ml-4 ${(loc as any).is_active === false ? 'opacity-50' : ''}`}>
                       <div className="flex-1">
                         <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
                         {loc.description && <p className="text-xs text-muted-foreground mt-2 ml-1">{loc.description}</p>}
+                        {(loc as any).is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Desativado</p>}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(loc.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Switch
+                          checked={(loc as any).is_active !== false}
+                          onCheckedChange={(checked) => toggleActiveMutation.mutate({ id: loc.id, isActive: checked })}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(loc.id)} className="text-destructive hover:text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </motion.div>
                   ))}
                 </CollapsibleContent>

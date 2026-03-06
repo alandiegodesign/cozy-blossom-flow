@@ -37,10 +37,15 @@ export default function HomePage() {
   });
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return events;
+    let list = events;
+    // Hide invisible events for clients
+    if (!showAsProducer) {
+      list = list.filter(e => (e as any).is_visible !== false);
+    }
+    if (!search.trim()) return list;
     const q = search.toLowerCase();
-    return events.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
-  }, [events, search]);
+    return list.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
+  }, [events, search, showAsProducer]);
 
   // Producer stats
   const stats = useMemo(() => {

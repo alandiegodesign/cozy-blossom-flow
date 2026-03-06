@@ -24,6 +24,7 @@ export type Database = {
           end_date: string | null
           end_time: string | null
           id: string
+          is_visible: boolean
           location_address: string | null
           location_name: string | null
           map_image: string | null
@@ -42,6 +43,7 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           id?: string
+          is_visible?: boolean
           location_address?: string | null
           location_name?: string | null
           map_image?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           end_date?: string | null
           end_time?: string | null
           id?: string
+          is_visible?: boolean
           location_address?: string | null
           location_name?: string | null
           map_image?: string | null
@@ -201,6 +204,7 @@ export type Database = {
           description: string | null
           event_id: string
           id: string
+          is_active: boolean
           location_type: string
           name: string
           price: number
@@ -214,6 +218,7 @@ export type Database = {
           description?: string | null
           event_id: string
           id?: string
+          is_active?: boolean
           location_type: string
           name: string
           price?: number
@@ -227,6 +232,7 @@ export type Database = {
           description?: string | null
           event_id?: string
           id?: string
+          is_active?: boolean
           location_type?: string
           name?: string
           price?: number

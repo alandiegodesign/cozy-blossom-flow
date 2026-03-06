@@ -69,3 +69,8 @@ export async function decreaseAvailability(id: string, qty: number): Promise<boo
   if (error) throw error;
   return data as boolean;
 }
+
+export async function toggleLocationActive(id: string, isActive: boolean): Promise<void> {
+  const { error } = await supabase.from('ticket_locations').update({ is_active: isActive } as any).eq('id', id);
+  if (error) throw error;
+}
