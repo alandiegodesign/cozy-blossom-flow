@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 interface QRScannerProps {
@@ -8,15 +8,25 @@ interface QRScannerProps {
 
 export default function QRScanner({ onScan, onError }: QRScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const hasScanned = useRef(false);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   useEffect(() => {
     const scannerId = 'qr-scanner-container';
+    let cancelled = false;
 
     const startScanner = async () => {
       try {
+        // Ensure the container element exists
+        const container = document.getElementById(scannerId);
+        if (!container) {
+          console.error('QR Scanner: container element not found');
+          return;
+        }
+
         const html5QrCode = new Html5Qrcode(scannerId);
         scannerRef.current = html5QrCode;
 
@@ -24,14 +34,20 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           (decodedText) => {
-            onScan(decodedText);
-            // Stop after successful scan
-            html5QrCode.stop().catch(() => {});
-            setStarted(false);
+            if (hasScanned.current) return;
+            hasScanned.current = true;
+            console.log('QR Scanner: scanned:', decodedText);
+            // Stop scanner then notify parent
+            html5QrCode.stop().then(() => {
+              setStarted(false);
+              onScanRef.current(decodedText);
+            }).catch(() => {
+              onScanRef.current(decodedText);
+            });
           },
           () => {} // ignore scan failures
         );
-        setStarted(true);
+        if (!cancelled) setStarted(true);
       } catch (err: any) {
         console.error('QR Scanner error:', err);
         if (err?.toString().includes('NotAllowedError') || err?.toString().includes('Permission')) {
@@ -41,9 +57,12 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
       }
     };
 
-    startScanner();
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(startScanner, 300);
 
     return () => {
+      cancelled = true;
+      clearTimeout(timer);
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => {});
         scannerRef.current = null;
@@ -55,7 +74,6 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
     <div className="space-y-3">
       <div
         id="qr-scanner-container"
-        ref={containerRef}
         className="w-full rounded-xl overflow-hidden bg-muted min-h-[280px]"
       />
       {permissionDenied && (

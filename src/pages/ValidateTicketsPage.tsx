@@ -34,12 +34,16 @@ export default function ValidateTicketsPage() {
     if (!user) return;
     setLoading(true);
     setResult(null);
+    setValidated(false);
 
     try {
+      console.log('Validating code:', inputCode, 'producer:', user.id);
       const { data, error } = await supabase.rpc('lookup_ticket_by_code', {
         p_code: inputCode,
         p_producer_id: user.id,
       });
+
+      console.log('Validation result:', data, error);
 
       if (error || !data || data.length === 0 || !data[0].order_id) {
         setResult({ valid: false });
@@ -55,7 +59,8 @@ export default function ValidateTicketsPage() {
           alreadyValidated: row.is_already_validated,
         });
       }
-    } catch {
+    } catch (err) {
+      console.error('Validation error:', err);
       setResult({ valid: false });
     } finally {
       setLoading(false);
