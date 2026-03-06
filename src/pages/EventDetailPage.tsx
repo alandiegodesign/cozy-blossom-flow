@@ -119,7 +119,7 @@ export default function EventDetailPage() {
   if (!event) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Evento não encontrado</p></div>;
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className={`min-h-screen ${hasItems ? 'pb-28' : 'pb-8'}`}>
       <div className="relative h-64 overflow-hidden">
         {event.banner_image ? (
           <img src={event.banner_image} alt={event.title} className="w-full h-full object-cover" />
