@@ -1,7 +1,7 @@
 import { Event } from '@/services/eventService';
 import { motion } from 'framer-motion';
 import { CalendarDays } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface EventCardProps {
   event: Event;
@@ -9,13 +9,15 @@ interface EventCardProps {
 
 export function EventCard({ event }: EventCardProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const clientView = searchParams.get('view') === 'client';
 
   return (
     <motion.div
       whileHover={{ scale: 1.03, y: -4 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      onClick={() => navigate(`/event/${event.id}`)}
+      onClick={() => navigate(`/event/${event.id}${clientView ? '?view=client' : ''}`)}
       className="cursor-pointer rounded-2xl overflow-hidden bg-card border border-border group"
     >
       <div className="relative h-48 overflow-hidden">
