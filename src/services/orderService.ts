@@ -88,6 +88,19 @@ export async function getOrderItems(orderId: string): Promise<OrderItem[]> {
   return data || [];
 }
 
+export async function findUserByEmailOrCpf(identifier: string): Promise<{ user_id: string; user_name: string; user_email: string } | null> {
+  const { data, error } = await supabase.rpc('find_user_by_email_or_cpf', { p_identifier: identifier });
+  if (error) throw error;
+  const rows = data as unknown as { user_id: string; user_name: string; user_email: string }[];
+  return rows && rows.length > 0 ? rows[0] : null;
+}
+
+export async function transferOrder(orderId: string, fromUserId: string, toUserId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('transfer_order', { p_order_id: orderId, p_from_user_id: fromUserId, p_to_user_id: toUserId });
+  if (error) throw error;
+  return !!data;
+}
+
 export async function createOrder(
   eventId: string,
   userId: string,
