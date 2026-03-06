@@ -30,6 +30,7 @@ export type Database = {
           location_name: string | null
           map_image: string | null
           policies: Json | null
+          sales_end_time: string | null
           tags: Json | null
           time: string
           title: string
@@ -50,6 +51,7 @@ export type Database = {
           location_name?: string | null
           map_image?: string | null
           policies?: Json | null
+          sales_end_time?: string | null
           tags?: Json | null
           time?: string
           title: string
@@ -70,6 +72,7 @@ export type Database = {
           location_name?: string | null
           map_image?: string | null
           policies?: Json | null
+          sales_end_time?: string | null
           tags?: Json | null
           time?: string
           title?: string
