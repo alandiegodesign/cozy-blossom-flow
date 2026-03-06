@@ -34,6 +34,41 @@ export async function getProducerSales(userId: string): Promise<ProducerSaleRow[
   return (data as unknown as ProducerSaleRow[]) || [];
 }
 
+export interface ProducerTicketRow {
+  order_id: string;
+  event_id: string;
+  event_title: string;
+  event_date: string;
+  buyer_id: string;
+  buyer_name: string;
+  buyer_email: string;
+  buyer_phone: string;
+  buyer_cpf: string;
+  order_status: string;
+  validated_at: string | null;
+  total_amount: number;
+  order_created_at: string;
+  order_updated_at: string;
+  item_id: string;
+  location_name: string;
+  location_type: string;
+  item_quantity: number;
+  item_unit_price: number;
+  item_subtotal: number;
+}
+
+export async function getProducerTickets(userId: string): Promise<ProducerTicketRow[]> {
+  const { data, error } = await supabase.rpc('get_producer_tickets', { p_user_id: userId });
+  if (error) throw error;
+  return (data as unknown as ProducerTicketRow[]) || [];
+}
+
+export async function validateOrder(orderId: string, producerId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('validate_order', { p_order_id: orderId, p_producer_id: producerId });
+  if (error) throw error;
+  return !!data;
+}
+
 export async function getOrdersByUser(userId: string): Promise<Order[]> {
   const { data, error } = await supabase
     .from('orders')
