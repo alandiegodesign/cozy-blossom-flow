@@ -21,8 +21,14 @@ export type Database = {
           created_by: string
           date: string
           description: string
+          end_date: string | null
+          end_time: string | null
           id: string
+          location_address: string | null
+          location_name: string | null
           map_image: string | null
+          policies: Json | null
+          tags: Json | null
           time: string
           title: string
           updated_at: string
@@ -33,8 +39,14 @@ export type Database = {
           created_by: string
           date: string
           description?: string
+          end_date?: string | null
+          end_time?: string | null
           id?: string
+          location_address?: string | null
+          location_name?: string | null
           map_image?: string | null
+          policies?: Json | null
+          tags?: Json | null
           time?: string
           title: string
           updated_at?: string
@@ -45,8 +57,14 @@ export type Database = {
           created_by?: string
           date?: string
           description?: string
+          end_date?: string | null
+          end_time?: string | null
           id?: string
+          location_address?: string | null
+          location_name?: string | null
           map_image?: string | null
+          policies?: Json | null
+          tags?: Json | null
           time?: string
           title?: string
           updated_at?: string
