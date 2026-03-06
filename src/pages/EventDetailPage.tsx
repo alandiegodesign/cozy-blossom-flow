@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
 import { useMemo, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { QuantitySelector } from '@/components/QuantitySelector';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
