@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { getOrdersByUser, getOrderItems } from '@/services/orderService';
+import { getOrdersByUser } from '@/services/orderService';
 import { getEvent } from '@/services/eventService';
-import { getLocation } from '@/services/ticketLocationService';
 import { ArrowLeft, ShoppingBag, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TicketQRCode from '@/components/TicketQRCode';
@@ -12,6 +11,7 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import TransferTicketDialog from '@/components/TransferTicketDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-400' },
@@ -61,18 +61,35 @@ export default function MyOrdersPage() {
   );
 }
 
-function OrderCard({ order }: { order: { id: string; event_id: string; status: string; total_amount: number; created_at: string } }) {
+interface TicketCode {
+  item_id: string;
+  validation_code: string;
+  location_name: string;
+  quantity: number;
+}
+
+function OrderCard({ order }: { order: { id: string; event_id: string; status: string; total_amount: number; created_at: string; user_id: string } }) {
   const status = STATUS_STYLES[order.status] || STATUS_STYLES.pending;
   const [showQR, setShowQR] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+  const { user } = useAuth();
+
   const { data: event } = useQuery({
     queryKey: ['event', order.event_id],
     queryFn: () => getEvent(order.event_id),
   });
 
-  const { data: items = [] } = useQuery({
-    queryKey: ['orderItems', order.id],
-    queryFn: () => getOrderItems(order.id),
+  const { data: ticketCodes = [] } = useQuery({
+    queryKey: ['ticket-codes', order.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_my_ticket_codes', {
+        p_order_id: order.id,
+        p_user_id: user!.id,
+      });
+      if (error) throw error;
+      return (data as unknown as TicketCode[]) || [];
+    },
+    enabled: !!user,
   });
 
   return (
@@ -91,8 +108,10 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
       </div>
 
       <div className="space-y-1">
-        {items.map(item => (
-          <OrderItemRow key={item.id} item={item} />
+        {ticketCodes.map(tc => (
+          <div key={tc.item_id} className="flex justify-between text-sm">
+            <span className="text-muted-foreground">{tc.location_name} x{tc.quantity}</span>
+          </div>
         ))}
       </div>
 
@@ -113,12 +132,17 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
         <Collapsible open={showQR} onOpenChange={setShowQR}>
           <CollapsibleTrigger className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
             <ChevronDown className={`w-4 h-4 transition-transform ${showQR ? 'rotate-180' : ''}`} />
-            {showQR ? 'Ocultar QR Code' : 'Mostrar QR Code do Ingresso'}
+            {showQR ? 'Ocultar QR Codes' : 'Mostrar QR Codes dos Ingressos'}
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="flex flex-col items-center py-4 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-3">Apresente este QR Code na entrada do evento</p>
-              <TicketQRCode orderId={order.id} size={180} />
+            <div className="flex flex-col items-center py-4 border-t border-border space-y-6">
+              <p className="text-xs text-muted-foreground">Apresente o QR Code na entrada do evento</p>
+              {ticketCodes.map(tc => (
+                <div key={tc.item_id} className="flex flex-col items-center gap-1">
+                  <p className="text-xs font-semibold text-muted-foreground">{tc.location_name} (x{tc.quantity})</p>
+                  <TicketQRCode code={tc.validation_code} size={180} />
+                </div>
+              ))}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -126,19 +150,5 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
 
       <TransferTicketDialog open={showTransfer} onOpenChange={setShowTransfer} orderId={order.id} />
     </motion.div>
-  );
-}
-
-function OrderItemRow({ item }: { item: { id: string; ticket_location_id: string; quantity: number; subtotal: number } }) {
-  const { data: loc } = useQuery({
-    queryKey: ['location', item.ticket_location_id],
-    queryFn: () => getLocation(item.ticket_location_id),
-  });
-
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">{loc?.name || 'Local'} x{item.quantity}</span>
-      <span>R$ {Number(item.subtotal).toFixed(2)}</span>
-    </div>
   );
 }

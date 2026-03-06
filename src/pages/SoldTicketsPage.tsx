@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import TicketQRCode from '@/components/TicketQRCode';
+
 import ProducerSidebar from '@/components/ProducerSidebar';
 import QRScanner from '@/components/QRScanner';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,7 +72,7 @@ export default function SoldTicketsPage() {
   const [scanMode, setScanMode] = useState<'scanner' | 'manual'>('scanner');
   const [scanCode, setScanCode] = useState('');
   const [scanLoading, setScanLoading] = useState(false);
-  const [scanResult, setScanResult] = useState<{ valid: boolean; event?: string; location?: string; buyer?: string; quantity?: number; orderId?: string } | null>(null);
+  const [scanResult, setScanResult] = useState<{ valid: boolean; event?: string; location?: string; buyer?: string; quantity?: number; orderId?: string; alreadyValidated?: boolean } | null>(null);
 
   const { data: tickets = [], isLoading, refetch } = useQuery({
     queryKey: ['producer-tickets', user?.id],
@@ -170,35 +170,27 @@ export default function SoldTicketsPage() {
     setExpandedOrderId(prev => prev === orderId ? null : orderId);
   };
 
-  // QR Scanner validation logic
-  const handleScanValidate = async (orderId: string) => {
+  // QR Scanner validation logic - uses lookup_ticket_by_code
+  const handleScanValidate = async (code: string) => {
     setScanLoading(true);
     setScanResult(null);
     try {
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*, events:event_id(title)')
-        .eq('id', orderId)
-        .maybeSingle();
-      if (error || !order) {
+      const { data, error } = await supabase.rpc('lookup_ticket_by_code', {
+        p_code: code,
+        p_producer_id: user!.id,
+      });
+      if (error || !data || data.length === 0 || !data[0].order_id) {
         setScanResult({ valid: false });
       } else {
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('*, ticket_locations:ticket_location_id(name)')
-          .eq('order_id', order.id);
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('user_id', order.user_id)
-          .maybeSingle();
+        const row = data[0] as any;
         setScanResult({
-          valid: order.status === 'confirmed',
-          event: (order as any).events?.title || '—',
-          location: items?.[0] ? (items[0] as any).ticket_locations?.name : '—',
-          buyer: profile?.name || '—',
-          quantity: items?.reduce((sum, i) => sum + i.quantity, 0) || 0,
-          orderId: order.id,
+          valid: row.is_valid && !row.is_already_validated,
+          event: row.event_title || '—',
+          location: row.location_name || '—',
+          buyer: row.buyer_name || '—',
+          quantity: row.item_quantity || 0,
+          orderId: row.order_id,
+          alreadyValidated: row.is_already_validated,
         });
       }
     } catch {
@@ -210,9 +202,9 @@ export default function SoldTicketsPage() {
 
   const handleQRScan = (decodedText: string) => {
     const match = decodedText.match(/ticketvibe:\/\/validate\/(.+)/);
-    const orderId = match ? match[1] : decodedText;
-    setScanCode(orderId);
-    handleScanValidate(orderId);
+    const code = match ? match[1] : decodedText;
+    setScanCode(code);
+    handleScanValidate(code);
   };
 
   const handleManualScan = () => {
@@ -350,7 +342,7 @@ export default function SoldTicketsPage() {
                 {scanMode === 'manual' && (
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Código do pedido (UUID)"
+                      placeholder="Código de validação"
                       value={scanCode}
                       onChange={e => setScanCode(e.target.value)}
                       className="flex-1"
@@ -578,9 +570,8 @@ function OrderCard({
                 )}
               </div>
 
-              {/* QR Code + Validate button */}
-              <div className="flex items-center justify-between gap-4 pt-2">
-                <TicketQRCode orderId={order.orderId} size={100} />
+              {/* Validate button */}
+              <div className="flex items-center justify-end gap-4 pt-2">
                 {!validated && onValidate && (
                   <Button
                     onClick={() => onValidate(order.orderId)}

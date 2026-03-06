@@ -90,6 +90,7 @@ export type Database = {
           ticket_location_id: string
           unit_price: number
           updated_at: string
+          validation_code: string
         }
         Insert: {
           created_at?: string
@@ -100,6 +101,7 @@ export type Database = {
           ticket_location_id: string
           unit_price?: number
           updated_at?: string
+          validation_code: string
         }
         Update: {
           created_at?: string
@@ -110,6 +112,7 @@ export type Database = {
           ticket_location_id?: string
           unit_price?: number
           updated_at?: string
+          validation_code?: string
         }
         Relationships: [
           {
@@ -279,6 +282,15 @@ export type Database = {
         }[]
       }
       get_email_by_cpf: { Args: { p_cpf: string }; Returns: string }
+      get_my_ticket_codes: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: {
+          item_id: string
+          location_name: string
+          quantity: number
+          validation_code: string
+        }[]
+      }
       get_producer_sales: {
         Args: { p_user_id: string }
         Returns: {
@@ -321,6 +333,19 @@ export type Database = {
           order_updated_at: string
           total_amount: number
           validated_at: string
+        }[]
+      }
+      lookup_ticket_by_code: {
+        Args: { p_code: string; p_producer_id: string }
+        Returns: {
+          buyer_name: string
+          event_title: string
+          is_already_validated: boolean
+          is_valid: boolean
+          item_quantity: number
+          location_name: string
+          order_id: string
+          validation_code: string
         }[]
       }
       transfer_order: {
