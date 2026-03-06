@@ -68,7 +68,7 @@ export default function TicketSelectionPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
         {locations.filter(loc => loc.is_active !== false).map(loc => {
           const Icon = ICONS[loc.location_type as LocationType] || Music;
-          const isSoldOut = loc.available_quantity <= 0;
+          const isSoldOut = (loc as any).is_sold_out === true || loc.available_quantity <= 0;
           return (
             <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isSoldOut ? 'opacity-60' : ''}`}>
               <div className="flex-1">
