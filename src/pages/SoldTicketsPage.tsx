@@ -7,7 +7,8 @@ import { getEventsByCreator } from '@/services/eventService';
 import {
   ArrowLeft, TicketCheck, Calendar, User, Mail, Phone, CreditCard,
   Clock, RefreshCw, Search, CheckCircle2, ChevronDown, ChevronUp, QrCode,
-  Crown, Users, Star, UtensilsCrossed, Music
+  Crown, Users, Star, UtensilsCrossed, Music, ScanLine, Camera, Keyboard,
+  XCircle, CheckCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import TicketQRCode from '@/components/TicketQRCode';
 import ProducerSidebar from '@/components/ProducerSidebar';
+import QRScanner from '@/components/QRScanner';
+import { supabase } from '@/integrations/supabase/client';
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   pista: Music,
@@ -66,6 +69,10 @@ export default function SoldTicketsPage() {
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [scanMode, setScanMode] = useState<'scanner' | 'manual'>('scanner');
+  const [scanCode, setScanCode] = useState('');
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanResult, setScanResult] = useState<{ valid: boolean; event?: string; location?: string; buyer?: string; quantity?: number; orderId?: string } | null>(null);
 
   const { data: tickets = [], isLoading, refetch } = useQuery({
     queryKey: ['producer-tickets', user?.id],
@@ -163,6 +170,73 @@ export default function SoldTicketsPage() {
     setExpandedOrderId(prev => prev === orderId ? null : orderId);
   };
 
+  // QR Scanner validation logic
+  const handleScanValidate = async (orderId: string) => {
+    setScanLoading(true);
+    setScanResult(null);
+    try {
+      const { data: order, error } = await supabase
+        .from('orders')
+        .select('*, events:event_id(title)')
+        .eq('id', orderId)
+        .maybeSingle();
+      if (error || !order) {
+        setScanResult({ valid: false });
+      } else {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('*, ticket_locations:ticket_location_id(name)')
+          .eq('order_id', order.id);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', order.user_id)
+          .maybeSingle();
+        setScanResult({
+          valid: order.status === 'confirmed',
+          event: (order as any).events?.title || '—',
+          location: items?.[0] ? (items[0] as any).ticket_locations?.name : '—',
+          buyer: profile?.name || '—',
+          quantity: items?.reduce((sum, i) => sum + i.quantity, 0) || 0,
+          orderId: order.id,
+        });
+      }
+    } catch {
+      setScanResult({ valid: false });
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
+  const handleQRScan = (decodedText: string) => {
+    const match = decodedText.match(/ticketvibe:\/\/validate\/(.+)/);
+    const orderId = match ? match[1] : decodedText;
+    setScanCode(orderId);
+    handleScanValidate(orderId);
+  };
+
+  const handleManualScan = () => {
+    if (!scanCode.trim()) return;
+    handleScanValidate(scanCode.trim());
+  };
+
+  const handleScanAndValidate = async () => {
+    if (!scanResult?.orderId || !user) return;
+    const success = await validateOrder(scanResult.orderId, user.id);
+    if (success) {
+      toast.success('Ingresso validado!');
+      queryClient.invalidateQueries({ queryKey: ['producer-tickets'] });
+      setScanResult(prev => prev ? { ...prev, valid: false } : null);
+    } else {
+      toast.error('Erro ao validar');
+    }
+  };
+
+  const resetScan = () => {
+    setScanResult(null);
+    setScanCode('');
+  };
+
   return (
     <div className="min-h-screen pb-8">
       {/* Header */}
@@ -217,12 +291,15 @@ export default function SoldTicketsPage() {
           <div className="text-center py-20 text-muted-foreground">Carregando...</div>
         ) : (
           <Tabs defaultValue="pending" className="space-y-4">
-            <TabsList className="w-full grid grid-cols-2 h-12 rounded-xl">
-              <TabsTrigger value="pending" className="rounded-lg font-display font-semibold">
+            <TabsList className="w-full grid grid-cols-3 h-12 rounded-xl">
+              <TabsTrigger value="pending" className="rounded-lg font-display font-semibold text-xs sm:text-sm">
                 Validar ({pendingOrders.length})
               </TabsTrigger>
-              <TabsTrigger value="validated" className="rounded-lg font-display font-semibold">
-                Ingressos validados ({validatedOrders.length})
+              <TabsTrigger value="validated" className="rounded-lg font-display font-semibold text-xs sm:text-sm">
+                Validados ({validatedOrders.length})
+              </TabsTrigger>
+              <TabsTrigger value="scanner" className="rounded-lg font-display font-semibold text-xs sm:text-sm gap-1">
+                <ScanLine className="w-4 h-4" /> Scanner
               </TabsTrigger>
             </TabsList>
 
@@ -245,6 +322,84 @@ export default function SoldTicketsPage() {
                 onToggle={toggleExpand}
                 validated
               />
+            </TabsContent>
+
+            <TabsContent value="scanner" className="space-y-4">
+              <div className="flex gap-2">
+                <Button
+                  variant={scanMode === 'scanner' ? 'default' : 'outline'}
+                  className={scanMode === 'scanner' ? 'gradient-primary text-white flex-1 border-0' : 'flex-1'}
+                  onClick={() => { setScanMode('scanner'); resetScan(); }}
+                >
+                  <Camera className="w-4 h-4 mr-2" /> Câmera
+                </Button>
+                <Button
+                  variant={scanMode === 'manual' ? 'default' : 'outline'}
+                  className={scanMode === 'manual' ? 'gradient-primary text-white flex-1 border-0' : 'flex-1'}
+                  onClick={() => { setScanMode('manual'); resetScan(); }}
+                >
+                  <Keyboard className="w-4 h-4 mr-2" /> Manual
+                </Button>
+              </div>
+
+              <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
+                {scanMode === 'scanner' && !scanResult && (
+                  <QRScanner onScan={handleQRScan} onError={() => setScanMode('manual')} />
+                )}
+
+                {scanMode === 'manual' && (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Código do pedido (UUID)"
+                      value={scanCode}
+                      onChange={e => setScanCode(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleManualScan} disabled={scanLoading} className="gradient-primary text-white border-0">
+                      <Search className="w-4 h-4 mr-1" /> Validar
+                    </Button>
+                  </div>
+                )}
+
+                {scanLoading && (
+                  <p className="text-center text-muted-foreground text-sm">Validando...</p>
+                )}
+
+                {scanResult && (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
+                    {scanResult.valid ? (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                        <CheckCircle className="w-8 h-8 text-green-400 shrink-0" />
+                        <div>
+                          <p className="font-display font-bold text-green-400">Ingresso Válido ✓</p>
+                          <p className="text-sm text-muted-foreground mt-1">Evento: {scanResult.event}</p>
+                          <p className="text-sm text-muted-foreground">Local: {scanResult.location}</p>
+                          <p className="text-sm text-muted-foreground">Comprador: {scanResult.buyer}</p>
+                          <p className="text-sm text-muted-foreground">Quantidade: {scanResult.quantity}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/30">
+                        <XCircle className="w-8 h-8 text-destructive shrink-0" />
+                        <div>
+                          <p className="font-display font-bold text-destructive">Ingresso Inválido ✗</p>
+                          <p className="text-sm text-muted-foreground">Código não encontrado ou cancelado</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {scanResult.valid && (
+                      <Button onClick={handleScanAndValidate} className="w-full gradient-primary border-0 rounded-xl font-display font-bold gap-2">
+                        <CheckCircle2 className="w-5 h-5" /> Marcar como validado
+                      </Button>
+                    )}
+
+                    <Button variant="outline" className="w-full" onClick={resetScan}>
+                      Escanear outro ingresso
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         )}

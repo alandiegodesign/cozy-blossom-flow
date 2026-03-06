@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
   Menu, Home, PlusCircle, CalendarDays, TicketCheck, Archive,
-  BarChart3, ScanLine, User, LogOut, Users
+  BarChart3, User, LogOut, Users
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -15,7 +15,6 @@ const MENU_ITEMS = [
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
   { label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
-  { label: 'Validar Ingressos', icon: ScanLine, path: '/validate-tickets' },
   { label: 'Perfil', icon: User, path: '/profile' },
 ];
 
