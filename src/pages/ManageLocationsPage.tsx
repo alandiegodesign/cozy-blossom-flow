@@ -114,7 +114,8 @@ export default function ManageLocationsPage() {
   const isBatchType = selectedType === 'camarote' || selectedType === 'camarote_grupo' || selectedType === 'bistro';
 
   const handleAdd = () => {
-    if (!name || !price || !quantity) { toast.error('Preencha todos os campos obrigatórios'); return; }
+    const effectiveQuantity = isGroupType ? (parseInt(groupSize) || 1) : parseInt(quantity);
+    if (!name || !price || (!isGroupType && !quantity) || (isGroupType && !groupSize)) { toast.error('Preencha todos os campos obrigatórios'); return; }
     const finalName = useSectors && sectorName ? `${sectorName} - ${name}` : name;
     addMutation.mutate({
       event_id: eventId!,
@@ -122,8 +123,8 @@ export default function ManageLocationsPage() {
       name: finalName,
       description,
       price: parseFloat(price),
-      quantity: parseInt(quantity),
-      available_quantity: parseInt(quantity),
+      quantity: effectiveQuantity,
+      available_quantity: effectiveQuantity,
       color: getLocationColor(selectedType),
     });
   };
