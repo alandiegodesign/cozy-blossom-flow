@@ -94,7 +94,11 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
 
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-      className="bg-card rounded-2xl border border-border p-5 space-y-3">
+      className="bg-card rounded-2xl border border-border overflow-hidden">
+      {event?.banner_image && (
+        <img src={event.banner_image} alt={event?.title || 'Evento'} className="w-full aspect-[16/9] object-cover" />
+      )}
+      <div className="p-5 space-y-3">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-display font-semibold">{event?.title || 'Evento'}</h3>
@@ -159,6 +163,7 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
       )}
 
       <TransferTicketDialog open={showTransfer} onOpenChange={setShowTransfer} orderId={order.id} />
+      </div>
     </motion.div>
   );
 }
