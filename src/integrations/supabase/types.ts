@@ -110,6 +110,7 @@ export type Database = {
           total_amount: number
           updated_at: string
           user_id: string
+          validated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -119,6 +120,7 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id: string
+          validated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -128,6 +130,7 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string
+          validated_at?: string | null
         }
         Relationships: [
           {
@@ -250,6 +253,35 @@ export type Database = {
           order_status: string
           total_amount: number
         }[]
+      }
+      get_producer_tickets: {
+        Args: { p_user_id: string }
+        Returns: {
+          buyer_cpf: string
+          buyer_email: string
+          buyer_id: string
+          buyer_name: string
+          buyer_phone: string
+          event_date: string
+          event_id: string
+          event_title: string
+          item_id: string
+          item_quantity: number
+          item_subtotal: number
+          item_unit_price: number
+          location_name: string
+          location_type: string
+          order_created_at: string
+          order_id: string
+          order_status: string
+          order_updated_at: string
+          total_amount: number
+          validated_at: string
+        }[]
+      }
+      validate_order: {
+        Args: { p_order_id: string; p_producer_id: string }
+        Returns: boolean
       }
     }
     Enums: {
