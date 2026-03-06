@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           created_by: string
           date: string
+          deleted_at: string | null
           description: string
           end_date: string | null
           end_time: string | null
@@ -39,6 +40,7 @@ export type Database = {
           created_at?: string
           created_by: string
           date: string
+          deleted_at?: string | null
           description?: string
           end_date?: string | null
           end_time?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           date?: string
+          deleted_at?: string | null
           description?: string
           end_date?: string | null
           end_time?: string | null

@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
   Menu, Home, PlusCircle, TicketCheck, Archive,
-  BarChart3, User, LogOut, Users
+  BarChart3, User, LogOut, Users, Trash2
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -14,6 +14,7 @@ const MENU_ITEMS = [
   { label: 'Criar Evento', icon: PlusCircle, path: '/create-event' },
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
+  { label: 'Lixeira', icon: Trash2, path: '/trash' },
   { label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
   { label: 'Perfil', icon: User, path: '/profile' },
 ];
