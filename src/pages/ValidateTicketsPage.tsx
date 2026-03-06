@@ -69,19 +69,21 @@ export default function ValidateTicketsPage() {
 
   const handleManualValidate = () => {
     if (!code.trim()) return;
-    validateCode(code.trim());
+    validateCode(code.trim().toUpperCase());
   };
 
   const handleQRScan = (decodedText: string) => {
     const raw = decodedText.trim();
 
-    // Accept different QR payload formats: custom scheme, URL with query param, or plain code
+    // Accept plain code (preferred), custom scheme, URL with query param, or inline token
+    const plainMatch = raw.match(/^([A-Za-z0-9-]{6,64})$/i);
     const schemeMatch = raw.match(/ticketvibe:\/\/validate\/([A-Za-z0-9-]+)/i);
     const queryMatch = raw.match(/[?&](?:code|validation_code)=([A-Za-z0-9-]+)/i);
     const inlineCodeMatch = raw.match(/\b([A-Z0-9]{8})\b/i);
 
-    const scannedCode = schemeMatch?.[1] || queryMatch?.[1] || inlineCodeMatch?.[1] || raw;
+    const scannedCode = (plainMatch?.[1] || schemeMatch?.[1] || queryMatch?.[1] || inlineCodeMatch?.[1] || raw).trim().toUpperCase();
 
+    setMode('manual');
     setCode(scannedCode);
     validateCode(scannedCode);
   };
