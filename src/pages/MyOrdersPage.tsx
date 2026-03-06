@@ -137,9 +137,13 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
           <CollapsibleContent>
             <div className="flex flex-col items-center py-4 border-t border-border space-y-6">
               <p className="text-xs text-muted-foreground">Apresente o QR Code na entrada do evento</p>
-              {ticketCodes.map(tc => (
+              {ticketCodes.map((tc, idx) => (
                 <div key={tc.item_id} className="flex flex-col items-center gap-1">
-                  <p className="text-xs font-semibold text-muted-foreground">{tc.location_name} (x{tc.quantity})</p>
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    {tc.location_name} {tc.quantity === 1 && ticketCodes.filter(t => t.location_name === tc.location_name).length > 1
+                      ? `#${ticketCodes.filter(t => t.location_name === tc.location_name).indexOf(tc) + 1}`
+                      : `(x${tc.quantity})`}
+                  </p>
                   <TicketQRCode code={tc.validation_code} size={180} />
                 </div>
               ))}
