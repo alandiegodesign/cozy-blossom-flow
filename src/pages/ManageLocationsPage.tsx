@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, getEventsByCreator } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, getLocationColor, LocationType } from '@/services/ticketLocationService';
+import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -104,9 +104,18 @@ export default function ManageLocationsPage() {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => toggleLocationActive(id, isActive),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
-      toast.success('Status do local atualizado!');
+      toast.success('Visibilidade do local atualizada!');
     },
-    onError: () => toast.error('Erro ao alterar status'),
+    onError: () => toast.error('Erro ao alterar visibilidade'),
+  });
+
+  const toggleSoldOutMutation = useMutation({
+    mutationFn: ({ id, isSoldOut }: { id: string; isSoldOut: boolean }) => toggleLocationSoldOut(id, isSoldOut),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      toast.success('Status de disponibilidade atualizado!');
+    },
+    onError: () => toast.error('Erro ao alterar disponibilidade'),
   });
 
   const handleTypeSelect = (type: ExtendedLocationType) => {
@@ -382,15 +391,21 @@ export default function ManageLocationsPage() {
                       <div className="flex-1">
                         <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
                         {loc.description && <p className="text-xs text-muted-foreground mt-2 ml-1">{loc.description}</p>}
-                        {(loc as any).is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Desativado</p>}
+                        {(loc as any).is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Oculto para clientes</p>}
+                        {(loc as any).is_sold_out === true && (loc as any).is_active !== false && <p className="text-xs text-orange-500 mt-1 ml-1">Marcado como esgotado</p>}
                       </div>
                       <div className="flex items-center gap-1">
+                        <Switch
+                          checked={(loc as any).is_sold_out !== true}
+                          onCheckedChange={(checked) => toggleSoldOutMutation.mutate({ id: loc.id, isSoldOut: !checked })}
+                          title={(loc as any).is_sold_out ? 'Marcar como disponível' : 'Marcar como esgotado'}
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => toggleActiveMutation.mutate({ id: loc.id, isActive: (loc as any).is_active === false })}
                           className="text-muted-foreground hover:text-foreground"
-                          title={(loc as any).is_active === false ? 'Ativar local' : 'Desativar local'}
+                          title={(loc as any).is_active === false ? 'Mostrar para clientes' : 'Ocultar para clientes'}
                         >
                           {(loc as any).is_active === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </Button>

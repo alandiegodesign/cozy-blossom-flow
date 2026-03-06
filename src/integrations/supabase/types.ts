@@ -208,6 +208,7 @@ export type Database = {
           event_id: string
           id: string
           is_active: boolean
+          is_sold_out: boolean
           location_type: string
           name: string
           price: number
@@ -222,6 +223,7 @@ export type Database = {
           event_id: string
           id?: string
           is_active?: boolean
+          is_sold_out?: boolean
           location_type: string
           name: string
           price?: number
@@ -236,6 +238,7 @@ export type Database = {
           event_id?: string
           id?: string
           is_active?: boolean
+          is_sold_out?: boolean
           location_type?: string
           name?: string
           price?: number
