@@ -21,6 +21,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SoldTicketsPage from "./pages/SoldTicketsPage";
 import ArchivedEventsPage from "./pages/ArchivedEventsPage";
 import ValidateTicketsPage from "./pages/ValidateTicketsPage";
+import MyPagePage from "./pages/MyPagePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const AppRoutes = () => (
     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
     <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
+    <Route path="/my-page" element={<ProducerRoute><MyPagePage /></ProducerRoute>} />
     <Route path="/dashboard" element={<ProducerRoute><DashboardOverviewPage /></ProducerRoute>} />
     <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
     <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />

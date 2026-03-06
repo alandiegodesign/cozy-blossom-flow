@@ -3,15 +3,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
-  Menu, Home, PlusCircle, CalendarDays, TicketCheck, Archive,
+  Menu, Home, PlusCircle, TicketCheck, Archive,
   BarChart3, User, LogOut, Users
 } from 'lucide-react';
 import { useState } from 'react';
 
 const MENU_ITEMS = [
   { label: 'Início', icon: Home, path: '/' },
+  { label: 'Minha Página', icon: User, path: '/my-page' },
   { label: 'Criar Evento', icon: PlusCircle, path: '/create-event' },
-  { label: 'Meus Eventos', icon: CalendarDays, path: '/' },
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
   { label: 'Dashboard', icon: BarChart3, path: '/dashboard' },
