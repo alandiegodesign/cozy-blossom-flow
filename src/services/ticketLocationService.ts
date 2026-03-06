@@ -23,7 +23,8 @@ export async function getLocationsByEvent(eventId: string): Promise<TicketLocati
   const { data, error } = await supabase
     .from('ticket_locations')
     .select('*')
-    .eq('event_id', eventId);
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true });
   if (error) throw error;
   return data || [];
 }
