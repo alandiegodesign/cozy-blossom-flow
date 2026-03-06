@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import {
   ArrowLeft, ImagePlus, X, Clock, CalendarIcon, MapPin,
-  Music, Shield, Sparkles
+  Music, Shield, Sparkles, Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 
 const MUSIC_TAGS = ['DJ', 'Eletrônica', 'Sertanejo', 'Rock', 'POP', 'Techno', 'Funk', 'Kpop', 'RAP', 'Pagode'];
 const ENVIRONMENT_TAGS = ['Espaços Cobertos', 'Espaços Climatizados', 'Ar Livre'];
+const MAX_CUSTOM_TAGS = 5;
 
 const POLICY_OPTIONS = [
   { id: 'age_restriction', label: 'Faixa Etária', placeholder: 'Ex: Apenas maiores de 18 anos' },
@@ -44,6 +45,23 @@ export default function CreateEventPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showPolicies, setShowPolicies] = useState(false);
   const [policies, setPolicies] = useState<Record<string, string>>({});
+  const [customTagInput, setCustomTagInput] = useState('');
+  const [customTags, setCustomTags] = useState<string[]>([]);
+
+  const addCustomTag = () => {
+    const tag = customTagInput.trim();
+    if (!tag) return;
+    if (customTags.length >= MAX_CUSTOM_TAGS) { toast.error(`Máximo de ${MAX_CUSTOM_TAGS} tags personalizadas`); return; }
+    if ([...MUSIC_TAGS, ...ENVIRONMENT_TAGS, ...customTags].includes(tag)) { toast.error('Tag já existe'); return; }
+    setCustomTags(prev => [...prev, tag]);
+    setSelectedTags(prev => [...prev, tag]);
+    setCustomTagInput('');
+  };
+
+  const removeCustomTag = (tag: string) => {
+    setCustomTags(prev => prev.filter(t => t !== tag));
+    setSelectedTags(prev => prev.filter(t => t !== tag));
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -239,6 +257,29 @@ export default function CreateEventPage() {
                         {tag}
                       </button>
                     ))}
+                  </div>
+                  {/* Custom Tags */}
+                  <p className="text-xs text-muted-foreground font-medium pt-2">Personalizada</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {customTags.map(tag => (
+                      <button key={tag} onClick={() => removeCustomTag(tag)}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all bg-primary text-primary-foreground border-primary flex items-center gap-1">
+                        {tag}
+                        <X className="w-3 h-3" />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={customTagInput}
+                      onChange={e => setCustomTagInput(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
+                      placeholder="Adicionar tag..."
+                      className="h-8 rounded-lg text-xs flex-1"
+                    />
+                    <Button type="button" size="sm" variant="outline" className="h-8 rounded-lg px-2" onClick={addCustomTag}>
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </section>
