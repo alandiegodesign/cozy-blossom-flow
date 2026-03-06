@@ -69,7 +69,7 @@ const AppRoutes = () => (
     <Route path="/sold-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
     <Route path="/archived" element={<ProducerRoute><ArchivedEventsPage /></ProducerRoute>} />
     <Route path="/trash" element={<ProducerRoute><TrashPage /></ProducerRoute>} />
-    <Route path="/validate-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
+    <Route path="/validate-tickets" element={<ProducerRoute><ValidateTicketsPage /></ProducerRoute>} />
     <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
     <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />

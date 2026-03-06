@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import QRScanner from '@/components/QRScanner';
+import { validateOrder } from '@/services/orderService';
 
 interface TicketResult {
   valid: boolean;
@@ -25,6 +26,9 @@ export default function ValidateTicketsPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TicketResult | null>(null);
   const [mode, setMode] = useState<'scanner' | 'manual'>('scanner');
+  const [validated, setValidated] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [scanKey, setScanKey] = useState(0);
 
   const validateCode = async (inputCode: string) => {
     if (!user) return;
@@ -70,9 +74,25 @@ export default function ValidateTicketsPage() {
     validateCode(scannedCode);
   };
 
+  const handleConfirmValidation = async () => {
+    if (!result?.orderId || !user) return;
+    setValidating(true);
+    try {
+      await validateOrder(result.orderId, user.id);
+      setValidated(true);
+    } catch {
+      // ignore
+    } finally {
+      setValidating(false);
+    }
+  };
+
   const resetScan = () => {
     setResult(null);
     setCode('');
+    setValidated(false);
+    setValidating(false);
+    setScanKey(k => k + 1);
   };
 
   return (
@@ -109,7 +129,7 @@ export default function ValidateTicketsPage() {
 
         <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
           {mode === 'scanner' && !result && (
-            <QRScanner onScan={handleQRScan} onError={() => setMode('manual')} />
+            <QRScanner key={scanKey} onScan={handleQRScan} onError={() => setMode('manual')} />
           )}
 
           {mode === 'manual' && (
@@ -133,15 +153,32 @@ export default function ValidateTicketsPage() {
           {result && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
               {result.valid ? (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-                  <CheckCircle className="w-8 h-8 text-green-400 shrink-0" />
-                  <div>
-                    <p className="font-display font-bold text-green-400">Ingresso Válido ✓</p>
-                    <p className="text-sm text-muted-foreground mt-1">Evento: {result.event}</p>
-                    <p className="text-sm text-muted-foreground">Local: {result.location}</p>
-                    <p className="text-sm text-muted-foreground">Comprador: {result.buyer}</p>
-                    <p className="text-sm text-muted-foreground">Quantidade: {result.quantity}</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                    <CheckCircle className="w-8 h-8 text-green-400 shrink-0" />
+                    <div>
+                      <p className="font-display font-bold text-green-400">Ingresso Válido ✓</p>
+                      <p className="text-sm text-muted-foreground mt-1">Evento: {result.event}</p>
+                      <p className="text-sm text-muted-foreground">Local: {result.location}</p>
+                      <p className="text-sm text-muted-foreground">Comprador: {result.buyer}</p>
+                      <p className="text-sm text-muted-foreground">Quantidade: {result.quantity}</p>
+                    </div>
                   </div>
+                  {!validated && (
+                    <Button
+                      onClick={handleConfirmValidation}
+                      disabled={validating}
+                      className="w-full gradient-primary text-white font-bold py-3"
+                    >
+                      {validating ? 'Validando...' : '✓ Confirmar Check-in'}
+                    </Button>
+                  )}
+                  {validated && (
+                    <div className="flex items-center gap-2 justify-center p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                      <CheckCircle className="w-5 h-5 text-green-400" />
+                      <p className="font-display font-bold text-green-400">Check-in confirmado!</p>
+                    </div>
+                  )}
                 </div>
               ) : result.alreadyValidated ? (
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
