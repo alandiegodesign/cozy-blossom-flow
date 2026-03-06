@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, softDeleteEvent, toggleEventVisibility } from '@/services/eventService';
 import { getLocationsByEvent } from '@/services/ticketLocationService';
@@ -16,10 +16,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isProdutor = profile?.user_type === 'produtor';
+  const clientView = searchParams.get('view') === 'client';
 
   const { data: event, isLoading: loadingEvent } = useQuery({
     queryKey: ['event', id],
@@ -34,7 +36,7 @@ export default function EventDetailPage() {
   });
 
   // Only the creator (producer) can manage this event
-  const isOwner = isProdutor && event?.created_by === user?.id;
+  const isOwner = isProdutor && !clientView && event?.created_by === user?.id;
 
   // Fetch sales data for owner stats
   const { data: sales = [] } = useQuery({
@@ -92,7 +94,7 @@ export default function EventDetailPage() {
           <div className="w-full h-full gradient-primary" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
-        <button onClick={() => navigate('/')} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
+        <button onClick={() => navigate(clientView ? '/?view=client' : '/')} className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
           <ArrowLeft className="w-5 h-5" />
         </button>
         {isOwner && (
