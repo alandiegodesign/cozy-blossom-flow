@@ -21,6 +21,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SoldTicketsPage from "./pages/SoldTicketsPage";
 import ArchivedEventsPage from "./pages/ArchivedEventsPage";
 import TrashPage from "./pages/TrashPage";
+import RevenueDashboardPage from "./pages/RevenueDashboardPage";
 import ValidateTicketsPage from "./pages/ValidateTicketsPage";
 import MyPagePage from "./pages/MyPagePage";
 import NotFound from "./pages/NotFound";
@@ -63,6 +64,7 @@ const AppRoutes = () => (
     <Route path="/my-page" element={<ProducerRoute><MyPagePage /></ProducerRoute>} />
     <Route path="/dashboard" element={<ProducerRoute><DashboardOverviewPage /></ProducerRoute>} />
     <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
+    <Route path="/revenue" element={<ProducerRoute><RevenueDashboardPage /></ProducerRoute>} />
     <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
     <Route path="/sold-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
     <Route path="/archived" element={<ProducerRoute><ArchivedEventsPage /></ProducerRoute>} />
