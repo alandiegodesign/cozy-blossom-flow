@@ -163,6 +163,7 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
       )}
 
       <TransferTicketDialog open={showTransfer} onOpenChange={setShowTransfer} orderId={order.id} />
+      </div>
     </motion.div>
   );
 }
