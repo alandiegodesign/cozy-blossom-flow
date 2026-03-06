@@ -6,7 +6,7 @@ interface TicketQRCodeProps {
 }
 
 export default function TicketQRCode({ code, size = 160 }: TicketQRCodeProps) {
-  const qrValue = `ticketvibe://validate/${code}`;
+  const qrValue = code;
 
   return (
     <div className="flex flex-col items-center gap-2">
