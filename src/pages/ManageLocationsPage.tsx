@@ -62,8 +62,11 @@ export default function ManageLocationsPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
+  const [lote, setLote] = useState('');
+  const [groupSize, setGroupSize] = useState('1');
 
   // Batch state
+  const [useBatch, setUseBatch] = useState(false);
   const [batchQuantity, setBatchQuantity] = useState('');
   const [batchLoading, setBatchLoading] = useState(false);
 
@@ -101,8 +104,13 @@ export default function ManageLocationsPage() {
     setSelectedType(type);
     const label = LOCATION_TYPES.find(t => t.value === type)?.label || '';
     setName(label);
+    // Reset group size for non-group types
+    if (type !== 'camarote_grupo' && type !== 'bistro') {
+      setGroupSize('1');
+    }
   };
 
+  const isGroupType = selectedType === 'camarote_grupo' || selectedType === 'bistro';
   const isBatchType = selectedType === 'camarote' || selectedType === 'camarote_grupo' || selectedType === 'bistro';
 
   const handleAdd = () => {
@@ -292,24 +300,45 @@ export default function ManageLocationsPage() {
               <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço (R$)" className="h-12 rounded-xl" />
             </div>
             <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Lote (opcional)</label>
+              <Input value={lote} onChange={e => setLote(e.target.value)} placeholder="Lote (opcional)" className="h-12 rounded-xl" />
+              <p className="text-xs text-muted-foreground mt-1">Use para identificar 1º lote, 2º lote, etc.</p>
+            </div>
+
+            {/* Group size for camarote_grupo and bistro */}
+            {isGroupType && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Quantidade de ingressos do grupo (1 = ingresso individual)</label>
+                <Input type="number" value={groupSize} onChange={e => setGroupSize(e.target.value)} placeholder="1" className="h-12 rounded-xl" />
+                <p className="text-xs text-muted-foreground mt-1">Ex.: 5 significa que cada grupo gera vários ingressos individuais. Se o cliente comprar 1 grupo de 5, receberá 5 ingressos para transferir.</p>
+              </div>
+            )}
+
+            <div>
               <label className="text-xs text-muted-foreground mb-1 block">Quantidade de ingressos disponíveis para venda</label>
               <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade de ingressos disponíveis para venda" className="h-12 rounded-xl" />
               <p className="text-xs text-muted-foreground mt-1">Total de ingressos individuais que poderão ser vendidos neste local.</p>
             </div>
           </div>
 
-          {/* Batch option for camarote/bistro types */}
+          {/* Batch generation toggle for camarote/bistro */}
           {isBatchType && (
             <div className="border-t border-border pt-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-accent" />
-                <p className="text-sm font-semibold">Criar em lote</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-display font-semibold text-sm">Gerar locais em grande escala ({LOCATION_TYPES.find(t => t.value === selectedType)?.label})</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Cria automaticamente vários locais numerados (ex.: {LOCATION_TYPES.find(t => t.value === selectedType)?.label} 01, 02, 03...). Cada unidade segue o mesmo preço e configuração deste local.</p>
+                </div>
+                <Switch checked={useBatch} onCheckedChange={setUseBatch} />
               </div>
-              <p className="text-xs text-muted-foreground">Ex: 10 unidades serão nomeadas automaticamente ({LOCATION_TYPES.find(t => t.value === selectedType)?.label} - 01, 02...)</p>
-              <Input type="number" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} placeholder="Quantidade de unidades (ex: 10)" className="h-12 rounded-xl" />
-              <Button onClick={handleBatchAdd} disabled={batchLoading || !price} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
-                {batchLoading ? 'Criando...' : 'Criar em Lote'}
-              </Button>
+              {useBatch && (
+                <>
+                  <Input type="number" value={batchQuantity} onChange={e => setBatchQuantity(e.target.value)} placeholder="Quantidade de unidades (ex: 10)" className="h-12 rounded-xl" />
+                  <Button onClick={handleBatchAdd} disabled={batchLoading || !price} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+                    {batchLoading ? 'Criando...' : `Gerar ${batchQuantity || '0'} ${LOCATION_TYPES.find(t => t.value === selectedType)?.label || ''}`}
+                  </Button>
+                </>
+              )}
             </div>
           )}
 
