@@ -5,7 +5,7 @@ import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, Wine, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
@@ -44,7 +44,7 @@ export default function EventDetailPage() {
   const toggleGroup = (type: string) => setOpenGroups(prev => ({ ...prev, [type]: !prev[type] }));
 
   const ICONS: Record<LocationType, React.ElementType> = {
-    pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
+    pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: Wine,
   };
 
   const cartTotal = useMemo(() => {
