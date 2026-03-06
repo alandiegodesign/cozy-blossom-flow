@@ -66,7 +66,7 @@ export default function TicketSelectionPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
-        {locations.map(loc => {
+        {locations.filter(loc => (loc as any).is_active !== false).map(loc => {
           const Icon = ICONS[loc.location_type as LocationType] || Music;
           return (
             <div key={loc.id} className="bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4">

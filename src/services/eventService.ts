@@ -59,3 +59,8 @@ export async function deleteEvent(id: string): Promise<void> {
   const { error } = await supabase.from('events').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function toggleEventVisibility(id: string, isVisible: boolean): Promise<void> {
+  const { error } = await supabase.from('events').update({ is_visible: isVisible } as any).eq('id', id);
+  if (error) throw error;
+}

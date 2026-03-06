@@ -1,22 +1,24 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { getEvent } from '@/services/eventService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getEvent, deleteEvent, toggleEventVisibility } from '@/services/eventService';
 import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
 import { LocationChip } from '@/components/LocationChip';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, Link2, Copy, BarChart3 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
 import { useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isProdutor = profile?.user_type === 'produtor';
 
   const { data: event, isLoading: loadingEvent } = useQuery({
@@ -49,6 +51,26 @@ export default function EventDetailPage() {
     return { tickets, revenue };
   }, [sales, event]);
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteEvent(id!),
+    onSuccess: () => {
+      toast({ title: 'Evento excluído!' });
+      navigate('/');
+    },
+    onError: () => toast({ title: 'Erro ao excluir evento', variant: 'destructive' }),
+  });
+
+  const toggleVisibilityMutation = useMutation({
+    mutationFn: () => toggleEventVisibility(id!, !(event as any)?.is_visible),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event', id] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      toast({ title: (event as any)?.is_visible ? 'Evento ocultado!' : 'Evento visível!' });
+    },
+    onError: () => toast({ title: 'Erro ao alterar visibilidade', variant: 'destructive' }),
+  });
+
   const shareLink = typeof window !== 'undefined' ? `${window.location.origin}/event/${id}` : '';
 
   const copyLink = () => {
@@ -72,9 +94,14 @@ export default function EventDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         {isOwner && (
-          <button onClick={() => navigate(`/manage-locations/${event.id}`)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
-            <Settings className="w-5 h-5" />
-          </button>
+          <div className="absolute top-4 right-4 flex gap-2">
+            <button onClick={() => toggleVisibilityMutation.mutate()} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
+              {(event as any)?.is_visible !== false ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+            <button onClick={() => navigate(`/manage-locations/${event.id}`)} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         )}
       </div>
 
@@ -158,6 +185,27 @@ export default function EventDetailPage() {
               onClick={() => navigate(`/manage-locations/${event.id}`)}>
               <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais
             </Button>
+            <Button variant="outline" className="w-full h-14 text-lg font-display font-bold rounded-xl"
+              onClick={() => toggleVisibilityMutation.mutate()}>
+              {(event as any)?.is_visible !== false ? <><EyeOff className="w-5 h-5 mr-2" /> Ocultar Evento</> : <><Eye className="w-5 h-5 mr-2" /> Tornar Visível</>}
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full h-14 text-lg font-display font-bold rounded-xl">
+                  <Trash2 className="w-5 h-5 mr-2" /> Excluir Evento
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir evento?</AlertDialogTitle>
+                  <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os dados do evento serão removidos permanentemente.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         ) : (
           <Button className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
