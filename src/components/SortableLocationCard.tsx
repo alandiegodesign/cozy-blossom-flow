@@ -39,7 +39,8 @@ export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onD
 
       <div className="flex-1 min-w-0">
         <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
-        {loc.description && <p className="text-xs text-muted-foreground mt-2 ml-1">{loc.description}</p>}
+        {loc.group_size > 1 && <p className="text-xs text-primary mt-1 ml-1 font-medium">{loc.group_size} ingressos individuais por grupo</p>}
+        {loc.description && <p className="text-xs text-muted-foreground mt-1 ml-1">{loc.description}</p>}
         {loc.is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Oculto para clientes</p>}
         {loc.is_sold_out === true && loc.is_active !== false && <p className="text-xs text-amber-500 mt-1 ml-1">Marcado como esgotado</p>}
       </div>
