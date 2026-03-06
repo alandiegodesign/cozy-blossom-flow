@@ -49,6 +49,7 @@ export default function TicketSelectionPage() {
         name: loc.name,
         type: loc.location_type as LocationType,
         color: loc.color || '#9D4EDD',
+        group_size: loc.group_size || 1,
       }));
     navigate(`/checkout/${eventId}`, { state: { items: cartItems, total } });
   };

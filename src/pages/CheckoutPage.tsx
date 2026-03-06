@@ -102,6 +102,9 @@ export default function CheckoutPage() {
                   <div>
                     <p className="font-medium text-sm">{item.name}</p>
                     <p className="text-xs text-muted-foreground">{item.quantity}x R$ {Number(item.unit_price).toFixed(2)}</p>
+                    {(item as any).group_size > 1 && (
+                      <p className="text-xs text-primary font-medium">{(item as any).group_size} ingressos individuais inclusos</p>
+                    )}
                   </div>
                 </div>
                 <p className="font-bold" style={{ color: item.color }}>
