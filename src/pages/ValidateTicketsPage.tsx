@@ -4,6 +4,7 @@ import { ArrowLeft, ScanLine, Search, CheckCircle, XCircle, Camera, Keyboard } f
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import QRScanner from '@/components/QRScanner';
 
@@ -14,47 +15,40 @@ interface TicketResult {
   buyer?: string;
   quantity?: number;
   orderId?: string;
+  alreadyValidated?: boolean;
 }
 
 export default function ValidateTicketsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<TicketResult | null>(null);
   const [mode, setMode] = useState<'scanner' | 'manual'>('scanner');
 
-  const validateOrder = async (orderId: string) => {
+  const validateCode = async (inputCode: string) => {
+    if (!user) return;
     setLoading(true);
     setResult(null);
 
     try {
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*, events:event_id(title)')
-        .eq('id', orderId)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('lookup_ticket_by_code', {
+        p_code: inputCode,
+        p_producer_id: user.id,
+      });
 
-      if (error || !order) {
+      if (error || !data || data.length === 0 || !data[0].order_id) {
         setResult({ valid: false });
       } else {
-        const { data: items } = await supabase
-          .from('order_items')
-          .select('*, ticket_locations:ticket_location_id(name)')
-          .eq('order_id', order.id);
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('user_id', order.user_id)
-          .maybeSingle();
-
+        const row = data[0] as any;
         setResult({
-          valid: order.status === 'confirmed',
-          event: (order as any).events?.title || '—',
-          location: items?.[0] ? (items[0] as any).ticket_locations?.name : '—',
-          buyer: profile?.name || '—',
-          quantity: items?.reduce((sum, i) => sum + i.quantity, 0) || 0,
-          orderId: order.id,
+          valid: row.is_valid && !row.is_already_validated,
+          event: row.event_title || '—',
+          location: row.location_name || '—',
+          buyer: row.buyer_name || '—',
+          quantity: row.item_quantity || 0,
+          orderId: row.order_id,
+          alreadyValidated: row.is_already_validated,
         });
       }
     } catch {
@@ -66,15 +60,14 @@ export default function ValidateTicketsPage() {
 
   const handleManualValidate = () => {
     if (!code.trim()) return;
-    validateOrder(code.trim());
+    validateCode(code.trim());
   };
 
   const handleQRScan = (decodedText: string) => {
-    // Extract order ID from QR code format: ticketvibe://validate/{orderId}
     const match = decodedText.match(/ticketvibe:\/\/validate\/(.+)/);
-    const orderId = match ? match[1] : decodedText;
-    setCode(orderId);
-    validateOrder(orderId);
+    const scannedCode = match ? match[1] : decodedText;
+    setCode(scannedCode);
+    validateCode(scannedCode);
   };
 
   const resetScan = () => {
@@ -97,7 +90,6 @@ export default function ValidateTicketsPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
-        {/* Mode toggle */}
         <div className="flex gap-2">
           <Button
             variant={mode === 'scanner' ? 'default' : 'outline'}
@@ -115,19 +107,15 @@ export default function ValidateTicketsPage() {
           </Button>
         </div>
 
-        {/* Scanner or Manual input */}
         <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
           {mode === 'scanner' && !result && (
-            <QRScanner
-              onScan={handleQRScan}
-              onError={() => setMode('manual')}
-            />
+            <QRScanner onScan={handleQRScan} onError={() => setMode('manual')} />
           )}
 
           {mode === 'manual' && (
             <div className="flex gap-2">
               <Input
-                placeholder="Código do pedido (UUID)"
+                placeholder="Código de validação"
                 value={code}
                 onChange={e => setCode(e.target.value)}
                 className="flex-1"
@@ -153,6 +141,14 @@ export default function ValidateTicketsPage() {
                     <p className="text-sm text-muted-foreground">Local: {result.location}</p>
                     <p className="text-sm text-muted-foreground">Comprador: {result.buyer}</p>
                     <p className="text-sm text-muted-foreground">Quantidade: {result.quantity}</p>
+                  </div>
+                </div>
+              ) : result.alreadyValidated ? (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                  <CheckCircle className="w-8 h-8 text-yellow-400 shrink-0" />
+                  <div>
+                    <p className="font-display font-bold text-yellow-400">Já Validado</p>
+                    <p className="text-sm text-muted-foreground">Este ingresso já foi validado anteriormente</p>
                   </div>
                 </div>
               ) : (
