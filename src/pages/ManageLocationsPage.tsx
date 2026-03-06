@@ -164,7 +164,7 @@ export default function ManageLocationsPage() {
 
   const handleAdd = () => {
     const groupSizeNum = parseInt(groupSize) || 1;
-    const effectiveQuantity = isGroupType ? groupSizeNum : parseInt(quantity);
+    const effectiveQuantity = isGroupType ? 1 : parseInt(quantity);
     if (!name || !price || (!isGroupType && !quantity) || (isGroupType && !groupSize)) { toast.error('Preencha todos os campos obrigatórios'); return; }
     const finalName = useSectors && sectorName ? `${sectorName} - ${name}` : name;
     addMutation.mutate({
@@ -196,8 +196,8 @@ export default function ManageLocationsPage() {
           name: `${prefix} - ${num}`,
           description,
           price: parseFloat(price),
-          quantity: groupSizeNum,
-          available_quantity: groupSizeNum,
+          quantity: 1,
+          available_quantity: 1,
           color: getLocationColor(selectedType),
           group_size: groupSizeNum,
         } as any);
