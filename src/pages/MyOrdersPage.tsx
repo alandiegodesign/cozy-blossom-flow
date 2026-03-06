@@ -108,11 +108,17 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
       </div>
 
       <div className="space-y-1">
-        {ticketCodes.map(tc => (
-          <div key={tc.item_id} className="flex justify-between text-sm">
-            <span className="text-muted-foreground">{tc.location_name} x{tc.quantity}</span>
-          </div>
-        ))}
+        {(() => {
+          const grouped = ticketCodes.reduce<Record<string, number>>((acc, tc) => {
+            acc[tc.location_name] = (acc[tc.location_name] || 0) + tc.quantity;
+            return acc;
+          }, {});
+          return Object.entries(grouped).map(([name, qty]) => (
+            <div key={name} className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{name} — {qty} {qty > 1 ? 'ingressos individuais' : 'ingresso'}</span>
+            </div>
+          ));
+        })()}
       </div>
 
       <div className="flex justify-between items-center pt-2 border-t border-border">
