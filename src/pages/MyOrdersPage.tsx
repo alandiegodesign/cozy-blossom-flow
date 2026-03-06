@@ -37,7 +37,7 @@ export default function MyOrdersPage() {
             <ArrowLeft className="w-5 h-5" /> Voltar
           </button>
           <h1 className="font-display font-bold text-2xl text-white flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6" /> Meus Pedidos
+            <ShoppingBag className="w-6 h-6" /> Meus Ingressos
           </h1>
         </div>
       </div>
