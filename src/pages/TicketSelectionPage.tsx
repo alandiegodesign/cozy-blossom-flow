@@ -79,7 +79,10 @@ export default function TicketSelectionPage() {
                     <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{loc.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
+                  {loc.description}
+                </p>
                 <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>
                   R$ {Number(loc.price).toFixed(2)}
                 </p>
