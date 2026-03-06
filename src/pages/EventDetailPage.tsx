@@ -220,40 +220,97 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        {!isOwner && locations.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="font-display font-semibold text-lg">Selecionar Ingressos</h2>
-            {locations.filter(loc => loc.is_active !== false).map(loc => {
-              const Icon = ICONS[loc.location_type as LocationType] || Music;
-              const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
-              return (
-                <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isSoldOut ? 'opacity-60' : ''}`}>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
-                      <span className="font-display font-semibold">{loc.name}</span>
-                      {isSoldOut && (
-                        <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
-                      {loc.description}
-                    </p>
-                    <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>
-                      R$ {Number(loc.price).toFixed(2)}
-                    </p>
-                    {!isSoldOut && <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>}
+        {!isOwner && locations.length > 0 && (() => {
+          const activeLocs = locations.filter(loc => loc.is_active !== false);
+          const groupTypes: LocationType[] = ['camarote', 'camarote_grupo', 'bistro'];
+          const regularLocs = activeLocs.filter(loc => !groupTypes.includes(loc.location_type as LocationType));
+          
+          // Group camarotes/bistrôs by type
+          const grouped: Record<string, typeof activeLocs> = {};
+          activeLocs.filter(loc => groupTypes.includes(loc.location_type as LocationType)).forEach(loc => {
+            const key = loc.location_type;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(loc);
+          });
+
+          const groupLabels: Record<string, string> = {
+            camarote: 'Camarotes', camarote_grupo: 'Camarotes em Grupo', bistro: 'Bistrôs',
+          };
+
+          const renderFullCard = (loc: typeof activeLocs[0]) => {
+            const Icon = ICONS[loc.location_type as LocationType] || Music;
+            const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+            return (
+              <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isSoldOut ? 'opacity-60' : ''}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
+                    <span className="font-display font-semibold">{loc.name}</span>
+                    {isSoldOut && <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>}
                   </div>
-                  {!isSoldOut && (
-                    <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />
+                  <p className="text-sm text-muted-foreground">
+                    {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
+                    {loc.description}
+                  </p>
+                  <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</p>
+                  {!isSoldOut && <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>}
+                </div>
+                {!isSoldOut && <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />}
+              </div>
+            );
+          };
+
+          const renderCompactRow = (loc: typeof activeLocs[0]) => {
+            const Icon = ICONS[loc.location_type as LocationType] || Music;
+            const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+            return (
+              <div key={loc.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isSoldOut ? 'opacity-50' : ''}`}>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: loc.color || '#9D4EDD' }} />
+                  <span className="font-display font-medium text-sm truncate">{loc.name}</span>
+                  {isSoldOut ? (
+                    <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground shrink-0">({loc.available_quantity} disp.)</span>
                   )}
                 </div>
-              );
-            })}
-            {locations.filter(loc => loc.is_active !== false).length === 0 && <p className="text-sm text-muted-foreground">Nenhum ingresso disponível.</p>}
-          </div>
-        )}
+                <span className="font-bold text-sm shrink-0" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</span>
+                {!isSoldOut && <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />}
+              </div>
+            );
+          };
+
+          return (
+            <div className="space-y-4">
+              <h2 className="font-display font-semibold text-lg">Selecionar Ingressos</h2>
+              {regularLocs.map(renderFullCard)}
+              {Object.entries(grouped).map(([type, locs]) => {
+                if (locs.length === 1) return renderFullCard(locs[0]);
+                const Icon = ICONS[type as LocationType] || Music;
+                const color = locs[0]?.color || '#9D4EDD';
+                const price = locs[0]?.price;
+                const allSamePrice = locs.every(l => l.price === price);
+                return (
+                  <div key={type} className="bg-card rounded-2xl border border-border overflow-hidden">
+                    <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+                      <Icon className="w-5 h-5" style={{ color }} />
+                      <span className="font-display font-semibold">{groupLabels[type] || type}</span>
+                      <span className="text-xs text-muted-foreground">({locs.length} opções)</span>
+                      {allSamePrice && <span className="font-bold text-sm ml-auto" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
+                    </div>
+                    {locs[0]?.group_size > 1 && (
+                      <p className="px-5 text-xs text-muted-foreground">{locs[0].group_size} ingressos por grupo</p>
+                    )}
+                    <div className="divide-y divide-border mt-2">
+                      {locs.map(renderCompactRow)}
+                    </div>
+                  </div>
+                );
+              })}
+              {activeLocs.length === 0 && <p className="text-sm text-muted-foreground">Nenhum ingresso disponível.</p>}
+            </div>
+          );
+        })()}
 
         {isOwner ? (
           <div className="flex flex-col gap-3">
