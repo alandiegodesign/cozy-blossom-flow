@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, softDeleteEvent, toggleEventVisibility } from '@/services/eventService';
 import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
-import { LocationChip } from '@/components/LocationChip';
+
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
