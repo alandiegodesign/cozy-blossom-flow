@@ -39,6 +39,7 @@ export default function CreateEventPage() {
   const [time, setTime] = useState('');
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [salesEndTime, setSalesEndTime] = useState('');
   const [banner, setBanner] = useState('');
   const [mapImage, setMapImage] = useState('');
   const [locationName, setLocationName] = useState('');
@@ -113,6 +114,7 @@ export default function CreateEventPage() {
       map_image: mapImage,
       location_name: locationName,
       location_address: locationAddress,
+      sales_end_time: salesEndTime || null,
       created_by: user!.id,
     } as any);
   };
@@ -207,6 +209,14 @@ export default function CreateEventPage() {
                     <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-10 rounded-xl" />
                   </div>
                 </div>
+              </div>
+              <div className="border-t border-border pt-4 space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">Fechamento das vendas (opcional)</p>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <Input type="time" value={salesEndTime} onChange={e => setSalesEndTime(e.target.value)} placeholder="Horário limite" className="h-10 rounded-xl" />
+                </div>
+                <p className="text-xs text-muted-foreground">Horário em que as vendas serão encerradas no dia do evento. Se vazio, as vendas ficam abertas até o início.</p>
               </div>
             </section>
 
