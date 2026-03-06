@@ -314,11 +314,13 @@ export default function ManageLocationsPage() {
               </div>
             )}
 
-            <div>
-              <label className="text-xs text-muted-foreground mb-1 block">Quantidade de ingressos disponíveis para venda</label>
-              <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade de ingressos disponíveis para venda" className="h-12 rounded-xl" />
-              <p className="text-xs text-muted-foreground mt-1">Total de ingressos individuais que poderão ser vendidos neste local.</p>
-            </div>
+            {!isGroupType && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Quantidade de ingressos disponíveis para venda</label>
+                <Input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="Quantidade de ingressos disponíveis para venda" className="h-12 rounded-xl" />
+                <p className="text-xs text-muted-foreground mt-1">Total de ingressos individuais que poderão ser vendidos neste local.</p>
+              </div>
+            )}
           </div>
 
           {/* Batch generation toggle for camarote/bistro */}
