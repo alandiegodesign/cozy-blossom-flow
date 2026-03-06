@@ -9,6 +9,7 @@ interface Profile {
   phone: string;
   cpf: string | null;
   user_type: 'cliente' | 'produtor';
+  avatar_url: string | null;
 }
 
 interface AuthContextType {
