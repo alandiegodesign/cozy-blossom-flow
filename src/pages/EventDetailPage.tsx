@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getEvent, deleteEvent, toggleEventVisibility } from '@/services/eventService';
+import { getEvent, softDeleteEvent, toggleEventVisibility } from '@/services/eventService';
 import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
 import { LocationChip } from '@/components/LocationChip';
@@ -52,9 +52,11 @@ export default function EventDetailPage() {
   }, [sales, event]);
 
   const deleteMutation = useMutation({
-    mutationFn: () => deleteEvent(id!),
+    mutationFn: () => softDeleteEvent(id!),
     onSuccess: () => {
-      toast({ title: 'Evento excluído!' });
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast({ title: 'Evento movido para a lixeira!', description: 'Será excluído permanentemente em 7 dias.' });
       navigate('/');
     },
     onError: () => toast({ title: 'Erro ao excluir evento', variant: 'destructive' }),
@@ -192,7 +194,7 @@ export default function EventDetailPage() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="w-full h-14 text-lg font-display font-bold rounded-xl">
-                  <Trash2 className="w-5 h-5 mr-2" /> Excluir Evento
+                  <Trash2 className="w-5 h-5 mr-2" /> Mover para Lixeira
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
