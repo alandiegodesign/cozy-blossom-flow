@@ -91,6 +91,9 @@ export default function HomePage() {
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
                 <ShoppingBag className="w-4 h-4 mr-1" /> Ingressos
               </Button>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate('/profile')}>
+                <Eye className="w-5 h-5" />
+              </Button>
               {clientView && (
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/')}>
                   Voltar ao Produtor
