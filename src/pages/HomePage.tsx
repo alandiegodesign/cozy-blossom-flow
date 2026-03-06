@@ -1,10 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getEvents, getEventsByCreator } from '@/services/eventService';
+import { getProducerSales } from '@/services/orderService';
 import { EventCard } from '@/components/EventCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Ticket, LogOut, ShoppingBag } from 'lucide-react';
+import {
+  Plus, Search, Ticket, LogOut, ShoppingBag, DollarSign,
+  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar
+} from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,16 +29,49 @@ export default function HomePage() {
     enabled: showAsProducer ? !!user : true,
   });
 
+  const { data: sales = [] } = useQuery({
+    queryKey: ['producer-sales', user?.id],
+    queryFn: () => getProducerSales(user!.id),
+    enabled: showAsProducer && !!user,
+  });
+
   const filtered = useMemo(() => {
     if (!search.trim()) return events;
     const q = search.toLowerCase();
     return events.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
   }, [events, search]);
 
+  // Producer stats
+  const stats = useMemo(() => {
+    const revenue = sales.reduce((sum, s) => sum + Number(s.item_subtotal), 0);
+    const tickets = sales.reduce((sum, s) => sum + s.item_quantity, 0);
+    return { revenue, tickets, events: events.length };
+  }, [sales, events]);
+
+  // Split events: upcoming vs past
+  const now = new Date().toISOString().slice(0, 10);
+  const upcomingEvents = useMemo(() => filtered.filter(e => e.date >= now), [filtered, now]);
+  const pastEvents = useMemo(() => filtered.filter(e => e.date < now), [filtered, now]);
+
   const handleLogout = async () => {
     await signOut();
     navigate('/login');
   };
+
+  if (showAsProducer) {
+    return <ProducerHome
+      profile={profile}
+      events={events}
+      upcomingEvents={upcomingEvents}
+      pastEvents={pastEvents}
+      stats={stats}
+      isLoading={isLoading}
+      search={search}
+      setSearch={setSearch}
+      filtered={filtered}
+      navigate={navigate}
+    />;
+  }
 
   return (
     <div className="min-h-screen pb-24">
@@ -42,40 +79,31 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              {isProdutor && <ProducerSidebar />}
               <Ticket className="w-8 h-8 text-white" />
               <h1 className="font-display font-bold text-2xl text-white">TicketVibe</h1>
             </div>
             <div className="flex items-center gap-2">
-              {!showAsProducer && (
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
-                  <ShoppingBag className="w-4 h-4 mr-1" /> Pedidos
-                </Button>
-              )}
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
+                <ShoppingBag className="w-4 h-4 mr-1" /> Pedidos
+              </Button>
               {clientView && (
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/')}>
                   Voltar ao Produtor
                 </Button>
               )}
-              {!isProdutor && (
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={handleLogout}>
-                  <LogOut className="w-5 h-5" />
-                </Button>
-              )}
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={handleLogout}>
+                <LogOut className="w-5 h-5" />
+              </Button>
             </div>
           </div>
           <p className="text-white/80 text-sm mb-1">
             Olá, {profile?.name || 'Usuário'}!
-            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-white/20">
-              {showAsProducer ? '🎬 Produtor' : '🎫 Cliente'}
-            </span>
+            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-white/20">🎫 Cliente</span>
           </p>
-          <p className="text-white/60 text-xs mb-4">
-            {showAsProducer ? 'Gerencie seus eventos' : 'Encontre os melhores eventos da comunidade'}
-          </p>
+          <p className="text-white/60 text-xs mb-4">Encontre os melhores eventos da comunidade</p>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input placeholder={showAsProducer ? 'Buscar meus eventos...' : 'Buscar eventos...'}
+            <Input placeholder="Buscar eventos..."
               value={search} onChange={e => setSearch(e.target.value)}
               className="pl-10 bg-background/90 backdrop-blur border-0 h-12 rounded-xl text-foreground" />
           </div>
@@ -83,15 +111,6 @@ export default function HomePage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-6 -mt-6">
-        {showAsProducer && !isLoading && (
-          <div className="mb-4 bg-card rounded-2xl border border-border p-4 flex items-center gap-3">
-            <div>
-              <p className="font-display font-semibold text-sm">{events.length} evento{events.length !== 1 ? 's' : ''}</p>
-              <p className="text-xs text-muted-foreground">Criados por você</p>
-            </div>
-          </div>
-        )}
-
         {isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
         ) : (
@@ -106,21 +125,162 @@ export default function HomePage() {
         )}
         {!isLoading && filtered.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="font-display text-lg">
-              {showAsProducer ? 'Você ainda não criou eventos' : 'Nenhum evento encontrado'}
-            </p>
-            {showAsProducer && <p className="text-sm mt-1">Toque no botão + para criar seu primeiro evento!</p>}
+            <p className="font-display text-lg">Nenhum evento encontrado</p>
           </div>
         )}
       </div>
-
-      {showAsProducer && (
-        <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-          onClick={() => navigate('/create-event')}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-accent text-white shadow-lg flex items-center justify-center glow-secondary z-50">
-          <Plus className="w-7 h-7" />
-        </motion.button>
-      )}
     </div>
+  );
+}
+
+// --- Producer Dashboard Home ---
+function ProducerHome({
+  profile, events, upcomingEvents, pastEvents, stats, isLoading, search, setSearch, filtered, navigate,
+}: {
+  profile: any;
+  events: any[];
+  upcomingEvents: any[];
+  pastEvents: any[];
+  stats: { revenue: number; tickets: number; events: number };
+  isLoading: boolean;
+  search: string;
+  setSearch: (s: string) => void;
+  filtered: any[];
+  navigate: (path: string) => void;
+}) {
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const initials = (profile?.name || 'U').charAt(0).toUpperCase();
+
+  const nextSlide = () => setCarouselIndex(i => Math.min(i + 1, upcomingEvents.length - 1));
+  const prevSlide = () => setCarouselIndex(i => Math.max(i - 1, 0));
+
+  return (
+    <div className="min-h-screen pb-24">
+      {/* Header */}
+      <div className="gradient-primary px-6 pt-8 pb-6">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ProducerSidebar />
+            <div className="w-px h-6 bg-white/30" />
+            <h1 className="font-display font-bold text-xl text-white">Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white border border-white/30">
+              {initials}
+            </div>
+            <span className="text-white text-sm font-medium hidden sm:block">{profile?.name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 space-y-8 mt-6">
+        {/* Welcome */}
+        <div>
+          <p className="text-muted-foreground text-sm">Bem vindo de volta</p>
+          <h2 className="font-display font-bold text-2xl">{profile?.name || 'Produtor'}</h2>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard icon={DollarSign} label="Receita total" value={`R$ ${stats.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} color="hsl(var(--primary))" />
+          <StatCard icon={Ticket} label="Ingressos vendidos" value={String(stats.tickets)} color="hsl(var(--accent-foreground))" />
+          <StatCard icon={CalendarCheck} label="Eventos realizados" value={String(stats.events)} color="#9D4EDD" />
+          <StatCard icon={Eye} label="Visualizações" value="—" color="#F72585" />
+        </div>
+
+        {/* Main content: two columns on desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Upcoming Events Carousel */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg">Próximos Eventos</h3>
+              <Button size="sm" className="gradient-accent border-0 rounded-full font-display font-bold text-xs gap-1" onClick={() => navigate('/create-event')}>
+                Criar Evento
+              </Button>
+            </div>
+
+            {upcomingEvents.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{carouselIndex + 1} / {upcomingEvents.length}</span>
+                  <div className="flex gap-1">
+                    <button onClick={prevSlide} disabled={carouselIndex === 0} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors">
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button onClick={nextSlide} disabled={carouselIndex >= upcomingEvents.length - 1} className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors">
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <motion.div key={carouselIndex} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
+                  <EventCard event={upcomingEvents[carouselIndex]} />
+                </motion.div>
+              </div>
+            ) : (
+              <div className="bg-card rounded-2xl border border-border p-8 text-center text-muted-foreground">
+                <CalendarCheck className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="font-display text-sm">Nenhum evento próximo</p>
+              </div>
+            )}
+          </div>
+
+          {/* Other Events List */}
+          <div className="space-y-4">
+            <h3 className="font-display font-bold text-lg">Outros eventos</h3>
+            {pastEvents.length > 0 ? (
+              <div className="space-y-2">
+                {pastEvents.slice(0, 5).map(event => (
+                  <button
+                    key={event.id}
+                    onClick={() => navigate(`/event/${event.id}`)}
+                    className="w-full bg-card rounded-xl border border-border p-4 flex items-center gap-4 hover:border-primary/50 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                      <Ticket className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm truncate">{event.title}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })} · {event.time}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card rounded-2xl border border-border p-8 text-center text-muted-foreground">
+                <p className="font-display text-sm">Nenhum evento passado</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* FAB */}
+      <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        onClick={() => navigate('/create-event')}
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-accent text-white shadow-lg flex items-center justify-center glow-secondary z-50">
+        <Plus className="w-7 h-7" />
+      </motion.button>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-card rounded-2xl border border-border p-4 space-y-2"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
+          <Icon className="w-5 h-5" style={{ color }} />
+        </div>
+        <p className="text-xs text-muted-foreground font-medium">{label}</p>
+      </div>
+      <p className="font-display font-bold text-xl">{value}</p>
+    </motion.div>
   );
 }
