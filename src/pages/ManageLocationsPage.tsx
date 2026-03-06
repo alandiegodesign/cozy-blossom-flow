@@ -189,16 +189,18 @@ export default function ManageLocationsPage() {
     try {
       for (let i = 1; i <= qty; i++) {
         const num = String(i).padStart(2, '0');
+        const groupSizeNum = isGroupType ? (parseInt(groupSize) || 1) : 1;
         await createLocation({
           event_id: eventId!,
           location_type: selectedType,
           name: `${prefix} - ${num}`,
           description,
           price: parseFloat(price),
-          quantity: 1,
-          available_quantity: 1,
+          quantity: groupSizeNum,
+          available_quantity: groupSizeNum,
           color: getLocationColor(selectedType),
-        });
+          group_size: groupSizeNum,
+        } as any);
       }
       queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
       setBatchQuantity(''); setPrice(''); setDescription('');
