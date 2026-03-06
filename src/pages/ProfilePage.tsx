@@ -104,8 +104,10 @@ export default function ProfilePage() {
         <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
           <h2 className="font-display font-semibold text-lg">Informações da Conta</h2>
           <InfoRow icon={User} label="Nome" value={profile?.name || '—'} />
-          <InfoRow icon={Phone} label="Telefone" value={profile?.phone || '—'} />
-          <InfoRow icon={Mail} label="E-mail" value={profile?.email || user?.email || '—'} />
+          <div className="grid grid-cols-2 gap-3">
+            <InfoRow icon={Phone} label="Telefone" value={profile?.phone || '—'} />
+            <InfoRow icon={Mail} label="E-mail" value={profile?.email || user?.email || '—'} />
+          </div>
           <InfoRow icon={CreditCard} label="CPF" value={profile?.cpf ? formatCpf(profile.cpf) : '—'} />
         </div>
 
