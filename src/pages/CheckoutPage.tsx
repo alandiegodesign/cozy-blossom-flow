@@ -79,9 +79,7 @@ export default function CheckoutPage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-5">
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           {event.banner_image && (
-            <div className="aspect-video w-full">
-              <img src={event.banner_image} alt={event.title} className="w-full h-full object-cover" />
-            </div>
+            <img src={event.banner_image} alt={event.title} className="w-full aspect-[16/9] object-cover rounded-t-2xl" />
           )}
           <div className="p-5">
             <h2 className="font-display font-semibold text-lg mb-2">{event.title}</h2>
