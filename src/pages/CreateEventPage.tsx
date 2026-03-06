@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { createEvent } from '@/services/eventService';
@@ -6,20 +6,67 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ImagePickerButton } from '@/components/ImagePickerButton';
-import { ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft, ImagePlus, X, Clock, CalendarIcon, MapPin,
+  Music, Shield, Sparkles
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+
+const MUSIC_TAGS = ['DJ', 'Eletrônica', 'Sertanejo', 'Rock', 'POP', 'Techno', 'Funk', 'Kpop', 'RAP', 'Pagode'];
+const ENVIRONMENT_TAGS = ['Espaços Cobertos', 'Espaços Climatizados', 'Ar Livre'];
+
+const POLICY_OPTIONS = [
+  { id: 'age_restriction', label: 'Faixa Etária', placeholder: 'Ex: Apenas maiores de 18 anos' },
+  { id: 'documents', label: 'Documentos Exigidos na Entrada', placeholder: 'Ex: Identidade' },
+  { id: 'coat_check', label: 'Presença de Guarda-Volume', placeholder: 'Ex: Consultar disponibilidade e preços' },
+  { id: 'entry_restriction', label: 'Restrição na entrada', placeholder: 'Ex: Proibida entrada com itens de qualquer tipo' },
+];
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const bannerRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<HTMLInputElement>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [banner, setBanner] = useState('');
   const [mapImage, setMapImage] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [locationAddress, setLocationAddress] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [policies, setPolicies] = useState<Record<string, string>>({});
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  const updatePolicy = (id: string, value: string) => {
+    setPolicies(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleBannerFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Imagem deve ter no máximo 5MB'); return; }
+    const reader = new FileReader();
+    reader.onload = () => setBanner(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleMapFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setMapImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const mutation = useMutation({
     mutationFn: createEvent,
@@ -44,50 +91,256 @@ export default function CreateEventPage() {
       banner_image: banner,
       map_image: mapImage,
       created_by: user!.id,
-    });
+    } as any);
   };
 
   return (
     <div className="min-h-screen pb-8">
-      <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
-        <div className="max-w-2xl mx-auto">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/80 mb-4">
-            <ArrowLeft className="w-5 h-5" /> Voltar
-          </button>
-          <h1 className="font-display font-bold text-2xl text-white">Criar Evento</h1>
+      <div className="gradient-primary px-6 pt-8 pb-6">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/80">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="font-display font-bold text-xl text-white">Informações do evento</h1>
+          </div>
+          <Button
+            onClick={handleSubmit}
+            disabled={mutation.isPending}
+            className="gradient-accent border-0 rounded-full font-display font-bold px-6"
+          >
+            {mutation.isPending ? 'Criando...' : 'Criar evento'}
+          </Button>
         </div>
       </div>
 
-      <motion.form initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleSubmit}
-        className="max-w-2xl mx-auto px-6 -mt-6 space-y-5">
-        <div className="bg-card rounded-2xl border border-border p-6 space-y-5">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Título *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Nome do evento" className="h-12 rounded-xl" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Descrição</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Descreva o evento" className="rounded-xl min-h-[100px]" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data *</label>
-              <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-12 rounded-xl" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Hora *</label>
-              <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-12 rounded-xl" />
-            </div>
-          </div>
-          <ImagePickerButton label="Banner do Evento" value={banner} onChange={setBanner} />
-          <ImagePickerButton label="Mapa do Evento" value={mapImage} onChange={setMapImage} />
-        </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="max-w-5xl mx-auto px-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Form */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Identity Section */}
+            <section className="bg-card rounded-2xl border border-border p-6 space-y-5">
+              <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" /> Identidade
+              </h2>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Título do evento</label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Digite aqui..." className="h-12 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Descrição</label>
+                <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Digite aqui..." className="rounded-xl min-h-[100px] resize-none" />
+              </div>
+            </section>
 
-        <Button type="submit" disabled={mutation.isPending}
-          className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary">
-          {mutation.isPending ? 'Criando...' : 'Criar Evento'}
-        </Button>
-      </motion.form>
+            {/* Cover Image */}
+            <section className="bg-card rounded-2xl border border-border p-6 space-y-3">
+              <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                <ImagePlus className="w-4 h-4 text-primary" /> Capa (16:9 recomendado)
+              </h2>
+              {banner ? (
+                <div className="relative rounded-xl overflow-hidden border border-border aspect-video">
+                  <img src={banner} alt="Banner" className="w-full h-full object-cover" />
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setBanner('')}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => bannerRef.current?.click()}
+                  className="w-full aspect-video rounded-xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
+                  <ImagePlus className="w-10 h-10" />
+                  <span className="text-sm">1920x1080 (máx 5MB)</span>
+                </button>
+              )}
+              <input ref={bannerRef} type="file" accept="image/*" className="hidden" onChange={handleBannerFile} />
+            </section>
+
+            {/* Date & Time */}
+            <section className="bg-card rounded-2xl border border-border p-6 space-y-4">
+              <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 text-primary" /> Data & hora
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-medium">Início</p>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-10 rounded-xl" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-10 rounded-xl" />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-medium">Fim</p>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="h-10 rounded-xl" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-10 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Location */}
+            <section className="bg-card rounded-2xl border border-border p-6 space-y-4">
+              <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Local
+              </h2>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Nome do local</label>
+                  <Input value={locationName} onChange={e => setLocationName(e.target.value)} placeholder="Ex: Mr Jack Club" className="h-10 rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Endereço</label>
+                  <Input value={locationAddress} onChange={e => setLocationAddress(e.target.value)} placeholder="Ex: Umuarama / PR" className="h-10 rounded-xl" />
+                </div>
+              </div>
+            </section>
+
+            {/* Tags & Policies side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Tags */}
+              <section className="bg-card rounded-2xl border border-border p-6 space-y-4">
+                <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                  <Music className="w-4 h-4 text-primary" /> Tags do Evento
+                </h2>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-medium">Música</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {MUSIC_TAGS.map(tag => (
+                      <button key={tag} onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          selectedTags.includes(tag)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-transparent text-muted-foreground border-border hover:border-primary/50'
+                        }`}>
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium pt-2">Ambiente</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ENVIRONMENT_TAGS.map(tag => (
+                      <button key={tag} onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          selectedTags.includes(tag)
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-transparent text-muted-foreground border-border hover:border-primary/50'
+                        }`}>
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {/* Policies */}
+              <section className="bg-card rounded-2xl border border-border p-6 space-y-4">
+                <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" /> Políticas do Evento
+                </h2>
+                <div className="space-y-3">
+                  {POLICY_OPTIONS.map(p => (
+                    <div key={p.id} className="space-y-1">
+                      <label className="text-xs font-medium text-primary">{p.label}</label>
+                      <Input
+                        value={policies[p.id] || ''}
+                        onChange={e => updatePolicy(p.id, e.target.value)}
+                        placeholder={p.placeholder}
+                        className="h-9 rounded-lg text-xs"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {/* Map Image */}
+            <section className="bg-card rounded-2xl border border-border p-6 space-y-3">
+              <h2 className="font-display font-bold text-sm flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Mapa do Evento
+              </h2>
+              {mapImage ? (
+                <div className="relative rounded-xl overflow-hidden border border-border">
+                  <img src={mapImage} alt="Mapa" className="w-full h-40 object-cover" />
+                  <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setMapImage('')}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => mapRef.current?.click()}
+                  className="w-full h-40 rounded-xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
+                  <ImagePlus className="w-8 h-8" />
+                  <span className="text-sm">Imagem do mapa</span>
+                </button>
+              )}
+              <input ref={mapRef} type="file" accept="image/*" className="hidden" onChange={handleMapFile} />
+            </section>
+
+            {/* Mobile submit */}
+            <Button
+              onClick={handleSubmit}
+              disabled={mutation.isPending}
+              className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary lg:hidden"
+            >
+              {mutation.isPending ? 'Criando...' : 'Criar Evento'}
+            </Button>
+          </div>
+
+          {/* Right Column - Preview + Tips */}
+          <div className="space-y-6 hidden lg:block">
+            {/* Live Preview */}
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3 sticky top-6">
+              <h3 className="font-display font-bold text-sm">Prévia</h3>
+              <div className="rounded-xl overflow-hidden border border-border aspect-video bg-muted flex items-center justify-center">
+                {banner ? (
+                  <img src={banner} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <p className="text-xs text-muted-foreground">Sua capa aparecerá aqui</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="font-display font-bold text-sm text-primary truncate">
+                  {title || 'Título do evento'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {locationName || 'Cidade/UF'}
+                </p>
+                {date && (
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(date + 'T00:00:00').toLocaleDateString('pt-BR')} · {time || '--:--'}
+                  </p>
+                )}
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {selectedTags.slice(0, 4).map(t => (
+                      <Badge key={t} variant="outline" className="text-[10px] px-1.5 py-0">{t}</Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Best Practices */}
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
+              <h3 className="font-display font-bold text-sm">Boas práticas</h3>
+              <ul className="space-y-1.5 text-xs text-muted-foreground list-disc list-inside">
+                <li>Imagem 16:9, sem textos pequenos.</li>
+                <li>Título claro com artista/local/data.</li>
+                <li>Descrição até 1.000 caracteres (objetiva).</li>
+                <li>Escolha tags suficientes para aparecer nas buscas.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
