@@ -115,7 +115,7 @@ export default function EventDetailPage() {
           <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <CalendarDays className="w-4 h-4 text-secondary" />
-              {new Date(event.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-accent" />

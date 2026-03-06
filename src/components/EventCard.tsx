@@ -35,7 +35,7 @@ export function EventCard({ event }: EventCardProps) {
       <div className="p-4 space-y-2">
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <CalendarDays className="w-4 h-4 text-secondary" />
-          <span>{new Date(event.date).toLocaleDateString('pt-BR')} às {event.time}</span>
+          <span>{new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às {event.time}</span>
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2">{event.description}</p>
       </div>
