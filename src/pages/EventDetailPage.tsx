@@ -295,18 +295,23 @@ export default function EventDetailPage() {
                 const allSamePrice = locs.every(l => l.price === price);
                 return (
                   <div key={type} className="bg-card rounded-2xl border border-border overflow-hidden">
-                    <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+                    <button onClick={() => toggleGroup(type)} className="w-full px-5 pt-4 pb-2 flex items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
                       <Icon className="w-5 h-5" style={{ color }} />
                       <span className="font-display font-semibold">{groupLabels[type] || type}</span>
                       <span className="text-xs text-muted-foreground">({locs.length} opções)</span>
-                      {allSamePrice && <span className="font-bold text-sm ml-auto" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
-                    </div>
-                    {locs[0]?.group_size > 1 && (
-                      <p className="px-5 text-xs text-muted-foreground">{locs[0].group_size} ingressos por grupo</p>
+                      {allSamePrice && <span className="font-bold text-sm ml-auto mr-2" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${openGroups[type] ? 'rotate-180' : ''}`} />
+                    </button>
+                    {openGroups[type] && (
+                      <>
+                        {locs[0]?.group_size > 1 && (
+                          <p className="px-5 text-xs text-muted-foreground">{locs[0].group_size} ingressos por grupo</p>
+                        )}
+                        <div className="divide-y divide-border mt-2">
+                          {locs.map(renderCompactRow)}
+                        </div>
+                      </>
                     )}
-                    <div className="divide-y divide-border mt-2">
-                      {locs.map(renderCompactRow)}
-                    </div>
                   </div>
                 );
               })}
