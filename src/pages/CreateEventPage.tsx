@@ -215,7 +215,7 @@ export default function CreateEventPage() {
               <div className="space-y-3">
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Nome do local</label>
-                  <Input value={locationName} onChange={e => setLocationName(e.target.value)} placeholder="Ex: Mr Jack Club" className="h-10 rounded-xl" />
+                  <Input value={locationName} onChange={e => setLocationName(e.target.value)} placeholder="Ex: Arena Open Bar" className="h-10 rounded-xl" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground">Endereço</label>
