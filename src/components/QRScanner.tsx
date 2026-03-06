@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 interface QRScannerProps {
@@ -37,12 +37,15 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
             if (hasScanned.current) return;
             hasScanned.current = true;
             console.log('QR Scanner: scanned:', decodedText);
-            // Stop scanner then notify parent
+
+            // Notify parent immediately (avoid waiting stop promise that can hang on some devices)
+            onScanRef.current(decodedText);
+
+            // Stop scanner in background
             html5QrCode.stop().then(() => {
               setStarted(false);
-              onScanRef.current(decodedText);
             }).catch(() => {
-              onScanRef.current(decodedText);
+              // ignore stop errors after successful scan
             });
           },
           () => {} // ignore scan failures
