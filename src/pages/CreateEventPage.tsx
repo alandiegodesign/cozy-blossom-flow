@@ -216,7 +216,7 @@ export default function CreateEventPage() {
                   <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                   <Input type="time" value={salesEndTime} onChange={e => setSalesEndTime(e.target.value)} placeholder="Horário limite" className="h-10 rounded-xl" />
                 </div>
-                <p className="text-xs text-muted-foreground">Horário em que as vendas serão encerradas no dia do evento. Se vazio, as vendas ficam abertas até o início.</p>
+                <p className="text-xs text-muted-foreground">Horário em que as vendas serão encerradas no dia do evento. Se vazio, as vendas permanecem abertas até 00:00.</p>
               </div>
             </section>
 
