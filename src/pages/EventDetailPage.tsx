@@ -121,10 +121,31 @@ export default function EventDetailPage() {
               <Clock className="w-4 h-4 text-accent" />
               {event.time}
             </span>
+          {(event as any).location_name && (
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-primary" />
+              {(event as any).location_name}{(event as any).location_address ? ` · ${(event as any).location_address}` : ''}
+            </span>
+          )}
           </div>
         </div>
 
         <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+
+        {/* Google Maps embed */}
+        {(event as any).location_address && (
+          <div className="rounded-2xl overflow-hidden border border-border">
+            <iframe
+              title="Localização do evento"
+              width="100%"
+              height="250"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps?q=${encodeURIComponent((event as any).location_address)}&output=embed`}
+            />
+          </div>
+        )}
 
         {/* Quick stats for event owner */}
         {isOwner && (

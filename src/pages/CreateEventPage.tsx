@@ -110,6 +110,8 @@ export default function CreateEventPage() {
       time,
       banner_image: banner,
       map_image: mapImage,
+      location_name: locationName,
+      location_address: locationAddress,
       created_by: user!.id,
     } as any);
   };
@@ -221,6 +223,19 @@ export default function CreateEventPage() {
                   <label className="text-xs text-muted-foreground">Endereço</label>
                   <Input value={locationAddress} onChange={e => setLocationAddress(e.target.value)} placeholder="Ex: Umuarama / PR" className="h-10 rounded-xl" />
                 </div>
+                {locationAddress && (
+                  <div className="rounded-xl overflow-hidden border border-border mt-2">
+                    <iframe
+                      title="Mapa do local"
+                      width="100%"
+                      height="200"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(locationAddress)}&output=embed`}
+                    />
+                  </div>
+                )}
               </div>
             </section>
 
