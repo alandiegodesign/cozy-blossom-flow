@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import ProducerSidebar from '@/components/ProducerSidebar';
+import goodVibesLogo from '@/assets/good-vibes-logo.png';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -79,8 +80,7 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Ticket className="w-8 h-8 text-white" />
-              <h1 className="font-display font-bold text-2xl text-white">TicketVibe</h1>
+              <img src={goodVibesLogo} alt="Good Vibes" className="h-10 w-auto" />
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
