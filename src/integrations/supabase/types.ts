@@ -252,6 +252,14 @@ export type Database = {
         Args: { loc_id: string; qty: number }
         Returns: boolean
       }
+      find_user_by_email_or_cpf: {
+        Args: { p_identifier: string }
+        Returns: {
+          user_email: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       get_email_by_cpf: { Args: { p_cpf: string }; Returns: string }
       get_producer_sales: {
         Args: { p_user_id: string }
@@ -296,6 +304,14 @@ export type Database = {
           total_amount: number
           validated_at: string
         }[]
+      }
+      transfer_order: {
+        Args: {
+          p_from_user_id: string
+          p_order_id: string
+          p_to_user_id: string
+        }
+        Returns: boolean
       }
       validate_order: {
         Args: { p_order_id: string; p_producer_id: string }

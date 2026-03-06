@@ -4,12 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getOrdersByUser, getOrderItems } from '@/services/orderService';
 import { getEvent } from '@/services/eventService';
 import { getLocation } from '@/services/ticketLocationService';
-import { ArrowLeft, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TicketQRCode from '@/components/TicketQRCode';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import TransferTicketDialog from '@/components/TransferTicketDialog';
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-400' },
@@ -62,7 +64,7 @@ export default function MyOrdersPage() {
 function OrderCard({ order }: { order: { id: string; event_id: string; status: string; total_amount: number; created_at: string } }) {
   const status = STATUS_STYLES[order.status] || STATUS_STYLES.pending;
   const [showQR, setShowQR] = useState(false);
-
+  const [showTransfer, setShowTransfer] = useState(false);
   const { data: event } = useQuery({
     queryKey: ['event', order.event_id],
     queryFn: () => getEvent(order.event_id),
@@ -95,7 +97,14 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
         <span className="font-display font-bold text-lg text-gradient">R$ {Number(order.total_amount).toFixed(2)}</span>
       </div>
 
-      {/* QR Code section */}
+      {order.status === 'confirmed' && (
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1 gap-2" onClick={() => setShowTransfer(true)}>
+            <Send className="w-4 h-4" /> Enviar Ingresso
+          </Button>
+        </div>
+      )}
+
       {order.status === 'confirmed' && (
         <Collapsible open={showQR} onOpenChange={setShowQR}>
           <CollapsibleTrigger className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
@@ -110,6 +119,8 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
           </CollapsibleContent>
         </Collapsible>
       )}
+
+      <TransferTicketDialog open={showTransfer} onOpenChange={setShowTransfer} orderId={order.id} />
     </motion.div>
   );
 }
