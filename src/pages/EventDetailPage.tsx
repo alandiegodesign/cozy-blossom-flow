@@ -267,15 +267,22 @@ export default function EventDetailPage() {
             const Icon = ICONS[loc.location_type as LocationType] || Music;
             const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
             return (
-              <div key={loc.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isSoldOut ? 'opacity-50' : ''}`}>
+                <div key={loc.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isSoldOut ? 'opacity-50' : ''}`}>
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <Icon className="w-4 h-4 shrink-0" style={{ color: loc.color || '#9D4EDD' }} />
-                  <span className="font-display font-medium text-sm truncate">{loc.name}</span>
-                  {isSoldOut ? (
-                    <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground shrink-0">({loc.available_quantity} disp.)</span>
-                  )}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-display font-medium text-sm truncate">{loc.name}</span>
+                      {isSoldOut ? (
+                        <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground shrink-0">({loc.available_quantity} disp.)</span>
+                      )}
+                    </div>
+                    {loc.group_size > 1 && (
+                      <p className="text-[10px] text-primary font-medium">{loc.group_size} ingressos individuais</p>
+                    )}
+                  </div>
                 </div>
                 <span className="font-bold text-sm shrink-0" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</span>
                 {!isSoldOut && <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />}
