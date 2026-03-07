@@ -327,42 +327,77 @@ export default function EventDetailPage() {
         })()}
 
         {isOwner ? (
-          <div className="bg-card rounded-2xl border border-border p-4 space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Ferramentas do Produtor</p>
-            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
-              onClick={() => navigate(`/edit-event/${event.id}`)}>
-              <Pencil className="w-4 h-4 mr-3 text-primary" /> Editar Evento
-            </Button>
-            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
-              onClick={() => navigate(`/dashboard/${event.id}`)}>
-              <BarChart3 className="w-4 h-4 mr-3 text-primary" /> Dashboard de Vendas
-            </Button>
-            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-accent/10 hover:text-accent"
-              onClick={() => navigate(`/manage-locations/${event.id}`)}>
-              <Settings className="w-4 h-4 mr-3 text-accent" /> Gerenciar Locais
-            </Button>
-            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-secondary/10 hover:text-secondary"
-              onClick={() => toggleVisibilityMutation.mutate()}>
-              {(event as any)?.is_visible !== false ? <><EyeOff className="w-4 h-4 mr-3 text-secondary" /> Ocultar Evento</> : <><Eye className="w-4 h-4 mr-3 text-secondary" /> Tornar Visível</>}
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-destructive/10 hover:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-3 text-destructive/60" /> Mover para Lixeira
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Excluir evento?</AlertDialogTitle>
-                  <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os dados do evento serão removidos permanentemente.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          <>
+            {locations.length > 0 && (
+              <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">Locais cadastrados</p>
+                  <span className="text-xs text-muted-foreground">{locations.length} {locations.length === 1 ? 'local' : 'locais'}</span>
+                </div>
+                <div className="divide-y divide-border">
+                  {locations.map(loc => {
+                    const Icon = ICONS[loc.location_type as LocationType] || Music;
+                    const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+                    const isInactive = loc.is_active === false;
+                    return (
+                      <div key={loc.id} className={`flex items-center gap-3 px-2 py-2.5 ${isInactive ? 'opacity-40' : isSoldOut ? 'opacity-60' : ''}`}>
+                        <Icon className="w-4 h-4 shrink-0" style={{ color: loc.color || '#9D4EDD' }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium truncate">{loc.name}</span>
+                            {isInactive && <span className="text-[10px] font-bold uppercase bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full shrink-0">Oculto</span>}
+                            {!isInactive && isSoldOut && <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>}
+                          </div>
+                          {loc.group_size > 1 && <p className="text-[10px] text-muted-foreground">{loc.group_size} ingressos por grupo</p>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</p>
+                          <p className="text-[10px] text-muted-foreground">{loc.available_quantity}/{loc.quantity}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-1">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Ferramentas do Produtor</p>
+              <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
+                onClick={() => navigate(`/edit-event/${event.id}`)}>
+                <Pencil className="w-4 h-4 mr-3 text-primary" /> Editar Evento
+              </Button>
+              <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
+                onClick={() => navigate(`/dashboard/${event.id}`)}>
+                <BarChart3 className="w-4 h-4 mr-3 text-primary" /> Dashboard de Vendas
+              </Button>
+              <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-accent/10 hover:text-accent"
+                onClick={() => navigate(`/manage-locations/${event.id}`)}>
+                <Settings className="w-4 h-4 mr-3 text-accent" /> Gerenciar Locais
+              </Button>
+              <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-secondary/10 hover:text-secondary"
+                onClick={() => toggleVisibilityMutation.mutate()}>
+                {(event as any)?.is_visible !== false ? <><EyeOff className="w-4 h-4 mr-3 text-secondary" /> Ocultar Evento</> : <><Eye className="w-4 h-4 mr-3 text-secondary" /> Tornar Visível</>}
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-destructive/10 hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-3 text-destructive/60" /> Mover para Lixeira
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir evento?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os dados do evento serão removidos permanentemente.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </>
         ) : hasItems ? (
           <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur border-t border-border p-4 z-50">
             <div className="max-w-2xl mx-auto flex items-center justify-between">
