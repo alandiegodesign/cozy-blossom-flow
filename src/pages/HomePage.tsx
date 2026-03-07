@@ -24,10 +24,11 @@ export default function HomePage() {
   const clientView = searchParams.get('view') === 'client';
   const showAsProducer = isProdutor && !clientView;
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, isError, refetch } = useQuery({
     queryKey: showAsProducer ? ['my-events', user?.id] : ['events'],
     queryFn: () => showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
     enabled: showAsProducer ? !!user : true,
+    retry: 2,
   });
 
   const { data: sales = [] } = useQuery({
