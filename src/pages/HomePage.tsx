@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Search, Ticket, LogOut, ShoppingBag, DollarSign,
-  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar
+  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
