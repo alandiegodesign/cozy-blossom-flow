@@ -122,7 +122,16 @@ export default function HomePage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-6 -mt-6">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-20 space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <p className="text-muted-foreground font-display text-lg">Erro ao carregar eventos</p>
+            <p className="text-sm text-muted-foreground">Verifique sua conexão e tente novamente.</p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" /> Tentar novamente
+            </Button>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
         ) : (
           <motion.div className="grid gap-4" initial="hidden" animate="visible"
