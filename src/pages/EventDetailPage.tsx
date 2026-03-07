@@ -367,21 +367,6 @@ export default function EventDetailPage() {
 
         <p className="text-muted-foreground leading-relaxed">{event.description}</p>
 
-        {/* Google Maps embed */}
-        {(event as any).location_address && (
-          <div className="rounded-2xl overflow-hidden border border-border">
-            <iframe
-              title="Localização do evento"
-              width="100%"
-              height="250"
-              style={{ border: 0 }}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              src={`https://www.google.com/maps?q=${encodeURIComponent((event as any).location_address)}&output=embed`}
-            />
-          </div>
-        )}
-
         {/* Quick stats for event owner */}
         {isOwner && (
           <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
@@ -413,6 +398,21 @@ export default function EventDetailPage() {
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Google Maps embed */}
+        {(event as any).location_address && (
+          <div className="rounded-2xl overflow-hidden border border-border">
+            <iframe
+              title="Localização do evento"
+              width="100%"
+              height="250"
+              style={{ border: 0 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://www.google.com/maps?q=${encodeURIComponent((event as any).location_address)}&output=embed`}
+            />
           </div>
         )}
 
