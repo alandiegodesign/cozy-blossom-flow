@@ -229,7 +229,9 @@ export default function EventDetailPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-display font-semibold text-lg">Locais Cadastrados</h2>
-                <span className="text-xs text-muted-foreground">{locations.length} {locations.length === 1 ? 'local' : 'locais'}</span>
+                <Button variant="outline" size="sm" onClick={() => navigate(`/manage-locations/${event.id}`)} className="border-accent text-accent hover:bg-accent/10">
+                  <Settings className="w-4 h-4 mr-1.5" /> Editar Locais
+                </Button>
               </div>
               {regularLocs.map(renderOwnerCard)}
               {Object.entries(grouped).map(([type, locs]) => {
