@@ -155,7 +155,7 @@ export default function HomePage() {
 
 // --- Producer Dashboard Home ---
 function ProducerHome({
-  profile, events, upcomingEvents, pastEvents, stats, isLoading, search, setSearch, filtered, navigate,
+  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate,
 }: {
   profile: any;
   events: any[];
@@ -163,6 +163,8 @@ function ProducerHome({
   pastEvents: any[];
   stats: { revenue: number; tickets: number; events: number };
   isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
   search: string;
   setSearch: (s: string) => void;
   filtered: any[];
