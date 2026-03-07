@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import EventDetailPage from "./pages/EventDetailPage";
 import CreateEventPage from "./pages/CreateEventPage";
+import EditEventPage from "./pages/EditEventPage";
 import ProducerDashboardPage from "./pages/ProducerDashboardPage";
 import DashboardOverviewPage from "./pages/DashboardOverviewPage";
 import ManageLocationsPage from "./pages/ManageLocationsPage";
@@ -61,6 +62,7 @@ const AppRoutes = () => (
     <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
     <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
+    <Route path="/edit-event/:id" element={<ProducerRoute><EditEventPage /></ProducerRoute>} />
     <Route path="/my-page" element={<ProducerRoute><MyPagePage /></ProducerRoute>} />
     <Route path="/dashboard" element={<ProducerRoute><DashboardOverviewPage /></ProducerRoute>} />
     <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
