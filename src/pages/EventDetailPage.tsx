@@ -301,23 +301,22 @@ export default function EventDetailPage() {
                 const price = locs[0]?.price;
                 const allSamePrice = locs.every(l => l.price === price);
                 return (
-                  <div key={type} className="bg-card rounded-2xl border border-border overflow-hidden">
-                    <button onClick={() => toggleGroup(type)} className="w-full px-5 pt-4 pb-2 flex items-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors">
-                      <Icon className="w-5 h-5" style={{ color }} />
-                      <span className="font-display font-semibold">{groupLabels[type] || type}</span>
-                      <span className="text-xs text-muted-foreground">({locs.length} opções)</span>
-                      {allSamePrice && <span className="font-bold text-sm ml-auto mr-2" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
-                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${openGroups[type] ? 'rotate-180' : ''}`} />
+                  <div key={type} className="bg-card rounded-2xl border-2 overflow-hidden" style={{ borderColor: `${color}40` }}>
+                    <button onClick={() => toggleGroup(type)} className="w-full px-5 py-4 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}20` }}>
+                        <Icon className="w-5 h-5" style={{ color }} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="font-display font-bold text-base block">{groupLabels[type] || type}</span>
+                        <span className="text-xs text-muted-foreground">{locs.length} opções disponíveis{locs[0]?.group_size > 1 ? ` · ${locs[0].group_size} ingressos por grupo` : ''}</span>
+                      </div>
+                      {allSamePrice && <span className="font-bold text-base shrink-0" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
+                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 shrink-0 ${openGroups[type] ? 'rotate-180' : ''}`} />
                     </button>
                     {openGroups[type] && (
-                      <>
-                        {locs[0]?.group_size > 1 && (
-                          <p className="px-5 text-xs text-muted-foreground">{locs[0].group_size} ingressos por grupo</p>
-                        )}
-                        <div className="divide-y divide-border mt-2">
-                          {locs.map(renderCompactRow)}
-                        </div>
-                      </>
+                      <div className="divide-y divide-border border-t border-border">
+                        {locs.map(renderCompactRow)}
+                      </div>
                     )}
                   </div>
                 );
