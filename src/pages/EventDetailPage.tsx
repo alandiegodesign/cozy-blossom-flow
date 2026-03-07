@@ -327,23 +327,23 @@ export default function EventDetailPage() {
         })()}
 
         {isOwner ? (
-          <div className="flex flex-col gap-3">
-            <Button className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
+          <div className="flex flex-col gap-2 pt-2">
+            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
               onClick={() => navigate(`/dashboard/${event.id}`)}>
-              <BarChart3 className="w-5 h-5 mr-2" /> Dashboard de Vendas
+              <BarChart3 className="w-4 h-4 mr-2" /> Dashboard de Vendas
             </Button>
-            <Button className="w-full h-14 text-lg font-display font-bold gradient-accent border-0 rounded-xl glow-secondary"
+            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
               onClick={() => navigate(`/manage-locations/${event.id}`)}>
-              <Settings className="w-5 h-5 mr-2" /> Gerenciar Locais
+              <Settings className="w-4 h-4 mr-2" /> Gerenciar Locais
             </Button>
-            <Button variant="outline" className="w-full h-14 text-lg font-display font-bold rounded-xl"
+            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
               onClick={() => toggleVisibilityMutation.mutate()}>
-              {(event as any)?.is_visible !== false ? <><EyeOff className="w-5 h-5 mr-2" /> Ocultar Evento</> : <><Eye className="w-5 h-5 mr-2" /> Tornar Visível</>}
+              {(event as any)?.is_visible !== false ? <><EyeOff className="w-4 h-4 mr-2" /> Ocultar Evento</> : <><Eye className="w-4 h-4 mr-2" /> Tornar Visível</>}
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full h-14 text-lg font-display font-bold rounded-xl">
-                  <Trash2 className="w-5 h-5 mr-2" /> Mover para Lixeira
+                <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" /> Mover para Lixeira
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
