@@ -328,35 +328,34 @@ export default function EventDetailPage() {
         {isOwner ? (
           <>
             {locations.length > 0 && (
-              <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">Locais cadastrados</p>
+                  <h2 className="font-display font-semibold text-lg">Locais Cadastrados</h2>
                   <span className="text-xs text-muted-foreground">{locations.length} {locations.length === 1 ? 'local' : 'locais'}</span>
                 </div>
-                <div className="divide-y divide-border">
-                  {locations.map(loc => {
-                    const Icon = ICONS[loc.location_type as LocationType] || Music;
-                    const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
-                    const isInactive = loc.is_active === false;
-                    return (
-                      <div key={loc.id} className={`flex items-center gap-3 px-2 py-2.5 ${isInactive ? 'opacity-40' : isSoldOut ? 'opacity-60' : ''}`}>
-                        <Icon className="w-4 h-4 shrink-0" style={{ color: loc.color || '#9D4EDD' }} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium truncate">{loc.name}</span>
-                            {isInactive && <span className="text-[10px] font-bold uppercase bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full shrink-0">Oculto</span>}
-                            {!isInactive && isSoldOut && <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>}
-                          </div>
-                          {loc.group_size > 1 && <p className="text-[10px] text-muted-foreground">{loc.group_size} ingressos por grupo</p>}
+                {locations.map(loc => {
+                  const Icon = ICONS[loc.location_type as LocationType] || Music;
+                  const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+                  const isInactive = loc.is_active === false;
+                  return (
+                    <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isInactive ? 'opacity-40' : isSoldOut ? 'opacity-60' : ''}`}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
+                          <span className="font-display font-semibold">{loc.name}</span>
+                          {isInactive && <span className="text-xs font-bold uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Oculto</span>}
+                          {!isInactive && isSoldOut && <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>}
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-sm font-bold" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</p>
-                          <p className="text-[10px] text-muted-foreground">{loc.available_quantity}/{loc.quantity}</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
+                          {loc.description}
+                        </p>
+                        <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">{loc.available_quantity}/{loc.quantity}</p>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
