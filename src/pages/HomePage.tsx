@@ -206,7 +206,18 @@ function ProducerHome({
           <StatCard icon={Eye} label="Visualizações" value="—" color="#F72585" />
         </div>
 
-        {/* Main content: two columns on desktop */}
+        {isError ? (
+          <div className="text-center py-20 space-y-4 col-span-full">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <p className="text-muted-foreground font-display text-lg">Erro ao carregar eventos</p>
+            <p className="text-sm text-muted-foreground">Verifique sua conexão e tente novamente.</p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" /> Tentar novamente
+            </Button>
+          </div>
+        ) : isLoading ? (
+          <div className="text-center py-20 text-muted-foreground col-span-full">Carregando eventos...</div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Events Carousel */}
           <div className="space-y-4">
