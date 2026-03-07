@@ -5,7 +5,7 @@ import { getLocationsByEvent } from '@/services/ticketLocationService';
 import { getProducerSales } from '@/services/orderService';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, Wine, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, MapPin, Settings, Ticket, DollarSign, Eye, EyeOff, Link2, Copy, BarChart3, Trash2, Music, Star, Crown, Wine, Users, Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocationType } from '@/services/ticketLocationService';
@@ -329,6 +329,10 @@ export default function EventDetailPage() {
         {isOwner ? (
           <div className="bg-card rounded-2xl border border-border p-4 space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Ferramentas do Produtor</p>
+            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
+              onClick={() => navigate(`/edit-event/${event.id}`)}>
+              <Pencil className="w-4 h-4 mr-3 text-primary" /> Editar Evento
+            </Button>
             <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
               onClick={() => navigate(`/dashboard/${event.id}`)}>
               <BarChart3 className="w-4 h-4 mr-3 text-primary" /> Dashboard de Vendas
