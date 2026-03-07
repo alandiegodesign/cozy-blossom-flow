@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Search, Ticket, LogOut, ShoppingBag, DollarSign,
-  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar
+  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar, AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -24,10 +24,11 @@ export default function HomePage() {
   const clientView = searchParams.get('view') === 'client';
   const showAsProducer = isProdutor && !clientView;
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, isError, refetch } = useQuery({
     queryKey: showAsProducer ? ['my-events', user?.id] : ['events'],
     queryFn: () => showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
     enabled: showAsProducer ? !!user : true,
+    retry: 2,
   });
 
   const { data: sales = [] } = useQuery({
@@ -72,6 +73,8 @@ export default function HomePage() {
       pastEvents={pastEvents}
       stats={stats}
       isLoading={isLoading}
+      isError={isError}
+      refetch={refetch}
       search={search}
       setSearch={setSearch}
       filtered={filtered}
@@ -119,7 +122,16 @@ export default function HomePage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-6 -mt-6">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-20 space-y-4">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <p className="text-muted-foreground font-display text-lg">Erro ao carregar eventos</p>
+            <p className="text-sm text-muted-foreground">Verifique sua conexão e tente novamente.</p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" /> Tentar novamente
+            </Button>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
         ) : (
           <motion.div className="grid gap-4" initial="hidden" animate="visible"
@@ -143,7 +155,7 @@ export default function HomePage() {
 
 // --- Producer Dashboard Home ---
 function ProducerHome({
-  profile, events, upcomingEvents, pastEvents, stats, isLoading, search, setSearch, filtered, navigate,
+  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate,
 }: {
   profile: any;
   events: any[];
@@ -151,6 +163,8 @@ function ProducerHome({
   pastEvents: any[];
   stats: { revenue: number; tickets: number; events: number };
   isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
   search: string;
   setSearch: (s: string) => void;
   filtered: any[];
@@ -192,7 +206,18 @@ function ProducerHome({
           <StatCard icon={Eye} label="Visualizações" value="—" color="#F72585" />
         </div>
 
-        {/* Main content: two columns on desktop */}
+        {isError ? (
+          <div className="text-center py-20 space-y-4 col-span-full">
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto" />
+            <p className="text-muted-foreground font-display text-lg">Erro ao carregar eventos</p>
+            <p className="text-sm text-muted-foreground">Verifique sua conexão e tente novamente.</p>
+            <Button onClick={() => refetch()} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" /> Tentar novamente
+            </Button>
+          </div>
+        ) : isLoading ? (
+          <div className="text-center py-20 text-muted-foreground col-span-full">Carregando eventos...</div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upcoming Events Carousel */}
           <div className="space-y-4">
@@ -248,6 +273,8 @@ function ProducerHome({
             )}
           </div>
         </div>
+        )}
+
       </div>
 
       {/* FAB */}
