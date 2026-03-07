@@ -163,6 +163,106 @@ export default function EventDetailPage() {
           </div>
         </div>
 
+        {isOwner && locations.length > 0 && (() => {
+          const groupTypes: LocationType[] = ['camarote', 'camarote_grupo', 'bistro'];
+          const regularLocs = locations.filter(loc => !groupTypes.includes(loc.location_type as LocationType));
+          const grouped: Record<string, typeof locations> = {};
+          locations.filter(loc => groupTypes.includes(loc.location_type as LocationType)).forEach(loc => {
+            const key = loc.location_type;
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(loc);
+          });
+          const groupLabels: Record<string, string> = {
+            camarote: 'Camarotes', camarote_grupo: 'Camarotes em Grupo', bistro: 'Bistrôs',
+          };
+
+          const renderOwnerCard = (loc: typeof locations[0]) => {
+            const Icon = ICONS[loc.location_type as LocationType] || Music;
+            const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+            const isInactive = loc.is_active === false;
+            return (
+              <div key={loc.id} className={`bg-card rounded-2xl border border-border p-5 flex items-center justify-between gap-4 ${isInactive ? 'opacity-40' : isSoldOut ? 'opacity-60' : ''}`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className="w-5 h-5" style={{ color: loc.color || '#9D4EDD' }} />
+                    <span className="font-display font-semibold">{loc.name}</span>
+                    {isInactive && <span className="text-xs font-bold uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Oculto</span>}
+                    {!isInactive && isSoldOut && <span className="text-xs font-bold uppercase bg-destructive/10 text-destructive px-2 py-0.5 rounded-full">Esgotado</span>}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {loc.group_size > 1 && <span className="font-medium">{loc.group_size} ingressos por grupo. </span>}
+                    {loc.description}
+                  </p>
+                  <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">{loc.available_quantity}/{loc.quantity}</p>
+                </div>
+              </div>
+            );
+          };
+
+          const renderOwnerCompactRow = (loc: typeof locations[0]) => {
+            const Icon = ICONS[loc.location_type as LocationType] || Music;
+            const isSoldOut = loc.is_sold_out === true || loc.available_quantity <= 0;
+            const isInactive = loc.is_active === false;
+            return (
+              <div key={loc.id} className={`flex items-center justify-between gap-3 px-4 py-3 ${isInactive ? 'opacity-40' : isSoldOut ? 'opacity-50' : ''}`}>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Icon className="w-4 h-4 shrink-0" style={{ color: loc.color || '#9D4EDD' }} />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-display font-medium text-sm truncate">{loc.name}</span>
+                      {isInactive && <span className="text-[10px] font-bold uppercase bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full shrink-0">Oculto</span>}
+                      {!isInactive && isSoldOut && <span className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive px-1.5 py-0.5 rounded-full shrink-0">Esgotado</span>}
+                    </div>
+                    {loc.group_size > 1 && <p className="text-[10px] text-primary font-medium">{loc.group_size} ingressos por grupo</p>}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="font-bold text-sm" style={{ color: loc.color || '#9D4EDD' }}>R$ {Number(loc.price).toFixed(2)}</span>
+                  <p className="text-[10px] text-muted-foreground">{loc.available_quantity}/{loc.quantity}</p>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-semibold text-lg">Locais Cadastrados</h2>
+                <span className="text-xs text-muted-foreground">{locations.length} {locations.length === 1 ? 'local' : 'locais'}</span>
+              </div>
+              {regularLocs.map(renderOwnerCard)}
+              {Object.entries(grouped).map(([type, locs]) => {
+                if (locs.length === 1) return renderOwnerCard(locs[0]);
+                const Icon = ICONS[type as LocationType] || Music;
+                const color = locs[0]?.color || '#9D4EDD';
+                const price = locs[0]?.price;
+                const allSamePrice = locs.every(l => l.price === price);
+                return (
+                  <div key={type} className="bg-card rounded-2xl border-2 overflow-hidden" style={{ borderColor: `${color}40` }}>
+                    <button onClick={() => toggleGroup(`owner_${type}`)} className="w-full px-5 py-4 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}20` }}>
+                        <Icon className="w-5 h-5" style={{ color }} />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <span className="font-display font-bold text-base block">{groupLabels[type] || type}</span>
+                        <span className="text-xs text-muted-foreground">{locs.length} opções{locs[0]?.group_size > 1 ? ` · ${locs[0].group_size} ingressos por grupo` : ''}</span>
+                      </div>
+                      {allSamePrice && <span className="font-bold text-base shrink-0" style={{ color }}>R$ {Number(price).toFixed(2)}</span>}
+                      <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 shrink-0 ${openGroups[`owner_${type}`] ? 'rotate-180' : ''}`} />
+                    </button>
+                    {openGroups[`owner_${type}`] && (
+                      <div className="divide-y divide-border border-t border-border">
+                        {locs.map(renderOwnerCompactRow)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
         {!isOwner && locations.length > 0 && (() => {
           const activeLocs = locations.filter(loc => loc.is_active !== false);
           const groupTypes: LocationType[] = ['camarote', 'camarote_grupo', 'bistro'];
