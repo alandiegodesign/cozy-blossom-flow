@@ -327,23 +327,24 @@ export default function EventDetailPage() {
         })()}
 
         {isOwner ? (
-          <div className="flex flex-col gap-2 pt-2">
-            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Ferramentas do Produtor</p>
+            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
               onClick={() => navigate(`/dashboard/${event.id}`)}>
-              <BarChart3 className="w-4 h-4 mr-2" /> Dashboard de Vendas
+              <BarChart3 className="w-4 h-4 mr-3 text-primary" /> Dashboard de Vendas
             </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
+            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-accent/10 hover:text-accent"
               onClick={() => navigate(`/manage-locations/${event.id}`)}>
-              <Settings className="w-4 h-4 mr-2" /> Gerenciar Locais
+              <Settings className="w-4 h-4 mr-3 text-accent" /> Gerenciar Locais
             </Button>
-            <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-foreground"
+            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-secondary/10 hover:text-secondary"
               onClick={() => toggleVisibilityMutation.mutate()}>
-              {(event as any)?.is_visible !== false ? <><EyeOff className="w-4 h-4 mr-2" /> Ocultar Evento</> : <><Eye className="w-4 h-4 mr-2" /> Tornar Visível</>}
+              {(event as any)?.is_visible !== false ? <><EyeOff className="w-4 h-4 mr-3 text-secondary" /> Ocultar Evento</> : <><Eye className="w-4 h-4 mr-3 text-secondary" /> Tornar Visível</>}
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full justify-start text-sm font-medium text-muted-foreground hover:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" /> Mover para Lixeira
+                <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-destructive/10 hover:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-3 text-destructive/60" /> Mover para Lixeira
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
