@@ -403,6 +403,15 @@ export default function EventDetailPage() {
           </div>
         )}
 
+        {event.map_image && (
+          <div className="space-y-2">
+            <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-secondary" /> Mapa do Evento
+            </h2>
+            <ZoomableImage src={event.map_image} alt="Mapa do evento" />
+          </div>
+        )}
+
         {/* Google Maps embed */}
         {(event as any).location_address && (
           <div className="rounded-2xl overflow-hidden border border-border">
@@ -415,15 +424,6 @@ export default function EventDetailPage() {
               referrerPolicy="no-referrer-when-downgrade"
               src={`https://www.google.com/maps?q=${encodeURIComponent((event as any).location_address)}&output=embed`}
             />
-          </div>
-        )}
-
-        {event.map_image && (
-          <div className="space-y-2">
-            <h2 className="font-display font-semibold text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-secondary" /> Mapa do Evento
-            </h2>
-            <ZoomableImage src={event.map_image} alt="Mapa do evento" />
           </div>
         )}
 
