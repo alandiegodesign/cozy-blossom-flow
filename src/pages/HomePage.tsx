@@ -73,6 +73,8 @@ export default function HomePage() {
       pastEvents={pastEvents}
       stats={stats}
       isLoading={isLoading}
+      isError={isError}
+      refetch={refetch}
       search={search}
       setSearch={setSearch}
       filtered={filtered}
