@@ -330,6 +330,10 @@ export default function EventDetailPage() {
           <div className="bg-card rounded-2xl border border-border p-4 space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Ferramentas do Produtor</p>
             <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
+              onClick={() => navigate(`/edit-event/${event.id}`)}>
+              <Pencil className="w-4 h-4 mr-3 text-primary" /> Editar Evento
+            </Button>
+            <Button variant="ghost" className="w-full justify-start h-11 text-sm font-medium hover:bg-primary/10 hover:text-primary"
               onClick={() => navigate(`/dashboard/${event.id}`)}>
               <BarChart3 className="w-4 h-4 mr-3 text-primary" /> Dashboard de Vendas
             </Button>
