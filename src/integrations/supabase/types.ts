@@ -327,6 +327,22 @@ export type Database = {
           total_tickets_sold: number
         }[]
       }
+      admin_get_events_ticket_summary: {
+        Args: never
+        Returns: {
+          event_date: string
+          event_id: string
+          event_title: string
+          is_visible: boolean
+          location_name: string
+          location_type: string
+          producer_id: string
+          producer_name: string
+          revenue: number
+          sold_quantity: number
+          total_quantity: number
+        }[]
+      }
       admin_get_producer_sales: {
         Args: { p_producer_id: string }
         Returns: {

@@ -64,3 +64,23 @@ export async function getAdminEvents(): Promise<AdminEventRow[]> {
   if (error) throw error;
   return (data as unknown as AdminEventRow[]) || [];
 }
+
+export interface AdminEventTicketSummary {
+  event_id: string;
+  event_title: string;
+  event_date: string;
+  producer_id: string;
+  producer_name: string;
+  is_visible: boolean;
+  location_type: string;
+  location_name: string;
+  total_quantity: number;
+  sold_quantity: number;
+  revenue: number;
+}
+
+export async function getAdminEventsTicketSummary(): Promise<AdminEventTicketSummary[]> {
+  const { data, error } = await supabase.rpc('admin_get_events_ticket_summary');
+  if (error) throw error;
+  return (data as unknown as AdminEventTicketSummary[]) || [];
+}
