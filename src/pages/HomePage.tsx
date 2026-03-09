@@ -108,8 +108,8 @@ export default function HomePage() {
             </div>
           </div>
           <p className="text-white/80 text-sm mb-1">
-            Olá, {profile?.name || 'Usuário'}!
-            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-white/20">🎫 Cliente</span>
+            Olá, {isAdmin ? 'Administrador' : (profile?.name || 'Usuário')}!
+            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-white/20">{isAdmin ? '🛡️ Admin' : '🎫 Cliente'}</span>
           </p>
           <p className="text-white/60 text-xs mb-4">Encontre os melhores eventos da comunidade</p>
           <div className="relative">
