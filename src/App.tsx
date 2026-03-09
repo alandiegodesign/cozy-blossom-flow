@@ -86,6 +86,8 @@ const AppRoutes = () => (
     <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
     <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
     <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+    <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+    <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
