@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 interface QRScannerProps {
@@ -6,46 +6,86 @@ interface QRScannerProps {
   onError?: (error: string) => void;
 }
 
+let scannerCounter = 0;
+
 export default function QRScanner({ onScan, onError }: QRScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [started, setStarted] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const hasScanned = useRef(false);
   const onScanRef = useRef(onScan);
-  const scannerId = useId().replace(/:/g, '-');
+  const onErrorRef = useRef(onError);
+  const mountedRef = useRef(true);
+  const [containerId] = useState(() => `qr-scanner-${++scannerCounter}`);
 
   onScanRef.current = onScan;
+  onErrorRef.current = onError;
+
+  const stopScanner = useCallback(async (scanner: Html5Qrcode | null) => {
+    if (!scanner) return;
+    try {
+      const state = scanner.getState();
+      // State 2 = SCANNING, 3 = PAUSED
+      if (state === 2 || state === 3) {
+        await scanner.stop();
+      }
+    } catch {
+      // ignore stop errors
+    }
+    try {
+      scanner.clear();
+    } catch {
+      // ignore clear errors
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
+    mountedRef.current = true;
+    hasScanned.current = false;
+    let html5QrCode: Html5Qrcode | null = null;
 
     const startScanner = async () => {
-      try {
-        const container = document.getElementById(scannerId);
-        if (!container) {
-          console.error('QR Scanner: container element not found');
-          return;
-        }
+      // Wait for DOM element to be ready
+      await new Promise(r => setTimeout(r, 300));
 
-        const html5QrCode = new Html5Qrcode(scannerId, {
+      if (!mountedRef.current) return;
+
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error('QR Scanner: container not found', containerId);
+        return;
+      }
+
+      try {
+        html5QrCode = new Html5Qrcode(containerId, {
           formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
           verbose: false,
         });
         scannerRef.current = html5QrCode;
 
-        const cameras = await Html5Qrcode.getCameras();
-        const backCamera = cameras.find((camera) => /back|rear|environment/i.test(camera.label));
-        const cameraConfig = backCamera
-          ? { deviceId: { exact: backCamera.id } }
-          : { facingMode: { exact: 'environment' as const } };
+        let cameraConfig: any;
+        try {
+          const cameras = await Html5Qrcode.getCameras();
+          const backCamera = cameras.find((c) => /back|rear|environment/i.test(c.label));
+          cameraConfig = backCamera
+            ? { deviceId: { exact: backCamera.id } }
+            : { facingMode: 'environment' };
+        } catch {
+          cameraConfig = { facingMode: 'environment' };
+        }
+
+        if (!mountedRef.current) {
+          await stopScanner(html5QrCode);
+          return;
+        }
 
         await html5QrCode.start(
           cameraConfig,
           {
-            fps: 12,
+            fps: 10,
             qrbox: (viewfinderWidth, viewfinderHeight) => {
               const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-              const edge = Math.max(180, Math.floor(minEdge * 0.72));
+              const edge = Math.max(180, Math.floor(minEdge * 0.7));
               return { width: edge, height: edge };
             },
             aspectRatio: 1,
@@ -54,49 +94,41 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
             if (hasScanned.current) return;
             hasScanned.current = true;
             onScanRef.current(decodedText);
-
-            html5QrCode
-              .stop()
-              .then(() => {
-                if (!cancelled) setStarted(false);
-              })
-              .catch(() => {
-                // ignore stop errors after successful scan
-              });
           },
           () => {
             // ignore per-frame decode failures
           }
         );
 
-        if (!cancelled) setStarted(true);
+        if (mountedRef.current) {
+          setStarted(true);
+        } else {
+          await stopScanner(html5QrCode);
+        }
       } catch (err: any) {
         console.error('QR Scanner error:', err);
         const msg = err?.toString?.() || 'Erro ao iniciar câmera';
         if (msg.includes('NotAllowedError') || msg.includes('Permission')) {
-          setPermissionDenied(true);
+          if (mountedRef.current) setPermissionDenied(true);
         }
-        onError?.(msg);
+        onErrorRef.current?.(msg);
       }
     };
 
-    const timer = setTimeout(startScanner, 200);
+    startScanner();
 
     return () => {
-      cancelled = true;
-      clearTimeout(timer);
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-        scannerRef.current.clear();
-        scannerRef.current = null;
-      }
+      mountedRef.current = false;
+      const scanner = scannerRef.current;
+      scannerRef.current = null;
+      stopScanner(scanner);
     };
-  }, [onError, scannerId]);
+  }, [containerId, stopScanner]);
 
   return (
     <div className="space-y-3">
       <div
-        id={scannerId}
+        id={containerId}
         className="w-full rounded-xl overflow-hidden bg-muted min-h-[280px]"
       />
       {permissionDenied && (
