@@ -58,7 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       async (_event, session) => {
         setSession(session);
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          try {
+            await fetchProfile(session.user.id);
+          } catch (e) {
+            console.error('Error fetching profile:', e);
+          }
         } else {
           setProfile(null);
           setIsAdmin(false);
@@ -70,7 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        try {
+          await fetchProfile(session.user.id);
+        } catch (e) {
+          console.error('Error fetching profile:', e);
+        }
       }
       setLoading(false);
     });
