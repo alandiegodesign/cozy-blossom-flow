@@ -91,6 +91,11 @@ export default function HomePage() {
               <img src={goodVibesLogo} alt="Good Vibes" className="h-32 w-auto" />
             </div>
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/admin')}>
+                  <Shield className="w-4 h-4 mr-1" /> Painel ADM
+                </Button>
+              )}
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => navigate('/my-orders')}>
                 <ShoppingBag className="w-4 h-4 mr-1" /> Ingressos
               </Button>
