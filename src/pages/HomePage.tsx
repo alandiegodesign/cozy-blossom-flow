@@ -18,15 +18,15 @@ import goodVibesLogo from '@/assets/good-vibes-logo.png';
 export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const [search, setSearch] = useState('');
   const isProdutor = profile?.user_type === 'produtor';
   const clientView = searchParams.get('view') === 'client';
   const showAsProducer = isProdutor && !clientView;
 
   const { data: events = [], isLoading, isError, refetch } = useQuery({
-    queryKey: showAsProducer ? ['my-events', user?.id] : ['events'],
-    queryFn: () => showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
+    queryKey: isAdmin ? ['all-events'] : showAsProducer ? ['my-events', user?.id] : ['events'],
+    queryFn: () => isAdmin ? getEvents() : showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
     enabled: showAsProducer ? !!user : true,
     retry: 2,
   });
