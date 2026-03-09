@@ -26,6 +26,8 @@ import RevenueDashboardPage from "./pages/RevenueDashboardPage";
 import ValidateTicketsPage from "./pages/ValidateTicketsPage";
 import MyPagePage from "./pages/MyPagePage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminProducerDetailPage from "./pages/AdminProducerDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,14 @@ function ProducerRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!session) return <Navigate to="/login" replace />;
   if (profile && profile.user_type !== 'produtor') return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { session, isAdmin, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!session) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -76,6 +86,8 @@ const AppRoutes = () => (
     <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
     <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
     <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+    <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+    <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
