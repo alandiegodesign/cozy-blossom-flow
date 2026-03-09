@@ -25,6 +25,7 @@ import TrashPage from "./pages/TrashPage";
 import RevenueDashboardPage from "./pages/RevenueDashboardPage";
 import ValidateTicketsPage from "./pages/ValidateTicketsPage";
 import MyPagePage from "./pages/MyPagePage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
