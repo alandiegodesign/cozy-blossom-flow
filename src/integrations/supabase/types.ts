@@ -276,11 +276,76 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_get_all_events: {
+        Args: never
+        Returns: {
+          created_at: string
+          event_date: string
+          event_id: string
+          event_title: string
+          is_visible: boolean
+          producer_id: string
+          producer_name: string
+          total_orders: number
+          total_revenue: number
+          total_tickets_sold: number
+        }[]
+      }
+      admin_get_all_producers: {
+        Args: never
+        Returns: {
+          producer_email: string
+          producer_id: string
+          producer_name: string
+          producer_phone: string
+          total_events: number
+          total_orders: number
+          total_revenue: number
+          total_tickets_sold: number
+        }[]
+      }
+      admin_get_producer_sales: {
+        Args: { p_producer_id: string }
+        Returns: {
+          buyer_name: string
+          event_date: string
+          event_id: string
+          event_title: string
+          item_id: string
+          item_quantity: number
+          item_subtotal: number
+          item_unit_price: number
+          location_name: string
+          location_type: string
+          order_created_at: string
+          order_id: string
+          order_status: string
+          total_amount: number
+        }[]
+      }
       decrease_availability: {
         Args: { loc_id: string; qty: number }
         Returns: boolean
@@ -347,6 +412,13 @@ export type Database = {
           validated_at: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       lookup_ticket_by_code: {
         Args: { p_code: string; p_producer_id: string }
         Returns: {
@@ -374,7 +446,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -501,6 +573,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
