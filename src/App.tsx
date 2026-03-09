@@ -26,6 +26,8 @@ import RevenueDashboardPage from "./pages/RevenueDashboardPage";
 import ValidateTicketsPage from "./pages/ValidateTicketsPage";
 import MyPagePage from "./pages/MyPagePage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminProducerDetailPage from "./pages/AdminProducerDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
