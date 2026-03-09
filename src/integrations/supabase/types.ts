@@ -137,6 +137,7 @@ export type Database = {
           event_id: string
           id: string
           status: string
+          stripe_session_id: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -147,6 +148,7 @@ export type Database = {
           event_id: string
           id?: string
           status?: string
+          stripe_session_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id: string
@@ -157,6 +159,7 @@ export type Database = {
           event_id?: string
           id?: string
           status?: string
+          stripe_session_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string

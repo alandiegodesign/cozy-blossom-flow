@@ -2,13 +2,14 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getEvent } from '@/services/eventService';
 import { useAuth } from '@/contexts/AuthContext';
-import { createOrder, CartItem } from '@/services/orderService';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-react';
+import { ArrowLeft, CreditCard, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from 'lucide-react';
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { CartItem } from '@/services/orderService';
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
@@ -18,6 +19,7 @@ interface CheckoutItem extends CartItem {
   name: string;
   type: LocationType;
   color: string;
+  group_size: number;
 }
 
 export default function CheckoutPage() {
@@ -42,24 +44,32 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleConfirm = async () => {
+  const handlePayment = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const cartItems: CartItem[] = state.items.map(i => ({
-        ticket_location_id: i.ticket_location_id,
-        quantity: i.quantity,
-        unit_price: i.unit_price,
-      }));
-      const order = await createOrder(eventId!, user.id, cartItems);
-      if (order) {
-        toast.success('Pedido confirmado com sucesso!');
-        navigate('/my-orders');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          items: state.items.map(i => ({
+            ticket_location_id: i.ticket_location_id,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+            name: i.name,
+            group_size: i.group_size || 1,
+          })),
+          eventId,
+          total: state.total,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
       } else {
-        toast.error('Erro ao criar pedido. Ingressos indisponíveis.');
+        toast.error('Erro ao iniciar pagamento.');
       }
     } catch {
-      toast.error('Erro ao processar pedido.');
+      toast.error('Erro ao processar pagamento. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -107,9 +117,9 @@ export default function CheckoutPage() {
                   <div>
                     <p className="font-medium text-sm">{item.name}</p>
                     <p className="text-xs text-muted-foreground">{item.quantity}x R$ {Number(item.unit_price).toFixed(2)}</p>
-                    {(item as any).group_size > 1 && (
+                    {item.group_size > 1 && (
                       <p className="text-xs text-primary font-medium">
-                        {item.quantity * (item as any).group_size} ingressos individuais inclusos ({(item as any).group_size} por unidade)
+                        {item.quantity * item.group_size} ingressos individuais inclusos ({item.group_size} por unidade)
                       </p>
                     )}
                   </div>
@@ -127,9 +137,25 @@ export default function CheckoutPage() {
           <p className="font-display font-bold text-4xl text-gradient">R$ {state.total.toFixed(2)}</p>
         </div>
 
-        <Button onClick={handleConfirm} disabled={loading}
+        <div className="bg-card rounded-2xl border border-border p-5">
+          <h3 className="font-display font-semibold mb-3">Formas de Pagamento</h3>
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-2 text-sm">
+              <CreditCard className="w-4 h-4 text-primary" />
+              <span>Cartão</span>
+            </div>
+            <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-2 text-sm">
+              <span className="text-primary font-bold text-xs">PIX</span>
+              <span>PIX</span>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Você escolherá o método na próxima tela</p>
+        </div>
+
+        <Button onClick={handlePayment} disabled={loading}
           className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center gap-2">
-          <CheckCircle2 className="w-6 h-6" /> {loading ? 'Processando...' : 'Confirmar Pedido'}
+          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <CreditCard className="w-6 h-6" />}
+          {loading ? 'Redirecionando...' : 'Ir para Pagamento'}
         </Button>
         <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
           Descartar pedido
