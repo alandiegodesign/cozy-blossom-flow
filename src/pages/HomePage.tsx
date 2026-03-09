@@ -39,14 +39,14 @@ export default function HomePage() {
 
   const filtered = useMemo(() => {
     let list = events;
-    // Hide invisible events for clients
-    if (!showAsProducer) {
+    // Hide invisible events for clients (admins see all)
+    if (!showAsProducer && !isAdmin) {
       list = list.filter(e => (e as any).is_visible !== false);
     }
     if (!search.trim()) return list;
     const q = search.toLowerCase();
     return list.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
-  }, [events, search, showAsProducer]);
+  }, [events, search, showAsProducer, isAdmin]);
 
   // Producer stats
   const stats = useMemo(() => {
