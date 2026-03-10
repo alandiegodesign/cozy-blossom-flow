@@ -56,43 +56,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    console.log('[AuthProvider] useEffect init');
-    
+    // Safety timeout: never stay loading forever
+    const timeout = setTimeout(() => {
+      setLoading(prev => {
+        if (prev) console.warn('[AuthProvider] Loading timeout - forcing ready');
+        return false;
+      });
+    }, 5000);
+
+    let mounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         console.log('[AuthProvider] onAuthStateChange', _event, !!session);
         setSession(session);
         if (session?.user) {
-          try {
-            await fetchProfile(session.user.id);
-          } catch (e) {
-            console.error('Error fetching profile:', e);
-          }
+          // Defer profile fetch to avoid Supabase deadlock
+          setTimeout(() => {
+            if (!mounted) return;
+            fetchProfile(session.user.id).catch(e => {
+              console.error('Error fetching profile:', e);
+            }).finally(() => {
+              if (mounted) setLoading(false);
+            });
+          }, 0);
         } else {
           setProfile(null);
           setIsAdmin(false);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[AuthProvider] getSession result', !!session);
+      if (!mounted) return;
       setSession(session);
       if (session?.user) {
-        try {
-          await fetchProfile(session.user.id);
-        } catch (e) {
+        fetchProfile(session.user.id).catch(e => {
           console.error('Error fetching profile:', e);
-        }
+        }).finally(() => {
+          if (mounted) setLoading(false);
+        });
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     }).catch(e => {
       console.error('[AuthProvider] getSession error', e);
-      setLoading(false);
+      if (mounted) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
