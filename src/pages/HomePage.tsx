@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import ProducerSidebar from '@/components/ProducerSidebar';
+import ProducerLayout from '@/components/ProducerLayout';
 import goodVibesLogo from '@/assets/good-vibes-logo.png';
 
 export default function HomePage() {
