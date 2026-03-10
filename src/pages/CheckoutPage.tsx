@@ -6,13 +6,11 @@ import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from '
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
@@ -25,6 +23,17 @@ interface CheckoutItem extends CartItem {
   group_size: number;
 }
 
+let stripePromise: Promise<Stripe | null> | null = null;
+
+async function getStripePromise() {
+  if (stripePromise) return stripePromise;
+  const { data } = await supabase.functions.invoke('get-stripe-key');
+  if (data?.publishableKey) {
+    stripePromise = loadStripe(data.publishableKey);
+  }
+  return stripePromise;
+}
+
 export default function CheckoutPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -34,6 +43,11 @@ export default function CheckoutPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
+
+  useEffect(() => {
+    getStripePromise().then(setStripe);
+  }, []);
 
   const { data: event } = useQuery({
     queryKey: ['event', eventId],
@@ -81,7 +95,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (showPayment && clientSecret) {
+  if (showPayment && clientSecret && stripe) {
     return (
       <div className="min-h-screen pb-8">
         <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
@@ -95,7 +109,7 @@ export default function CheckoutPage() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6">
           <div className="bg-card rounded-2xl border border-border overflow-hidden p-1">
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+            <EmbeddedCheckoutProvider stripe={stripe} options={{ clientSecret }}>
               <EmbeddedCheckout className="rounded-xl" />
             </EmbeddedCheckoutProvider>
           </div>
