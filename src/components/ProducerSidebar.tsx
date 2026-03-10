@@ -23,7 +23,7 @@ const MENU_ITEMS = [
 export default function ProducerSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
 
   const handleNav = (path: string) => {
