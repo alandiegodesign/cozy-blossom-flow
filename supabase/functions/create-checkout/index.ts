@@ -27,7 +27,6 @@ serve(async (req) => {
   );
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data: authData } = await supabaseClient.auth.getUser(token);
@@ -42,7 +41,6 @@ serve(async (req) => {
 
     if (!items?.length || !eventId) throw new Error("Dados inválidos");
 
-    // Get event info
     const { data: event } = await supabaseClient
       .from("events")
       .select("title")
@@ -53,14 +51,12 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Check/create Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
 
-    // Build line items with price_data for dynamic pricing
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
       price_data: {
         currency: "brl",
@@ -70,14 +66,13 @@ serve(async (req) => {
             ? `${item.group_size} ingressos por unidade`
             : undefined,
         },
-        unit_amount: Math.round(item.unit_price * 100), // cents
+        unit_amount: Math.round(item.unit_price * 100),
       },
       quantity: item.quantity,
     }));
 
     const origin = req.headers.get("origin") || "https://cozy-blossom-flow.lovable.app";
 
-    // Metadata to recreate the order after payment
     const metadata: Record<string, string> = {
       event_id: eventId,
       user_id: user.id,
@@ -94,12 +89,12 @@ serve(async (req) => {
       line_items: lineItems,
       mode: "payment",
       payment_method_types: ["card"],
-      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/checkout/${eventId}`,
+      ui_mode: "embedded",
+      return_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       metadata,
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
