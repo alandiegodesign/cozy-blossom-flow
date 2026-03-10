@@ -52,9 +52,9 @@ export default function ProducerSidebar() {
           <Menu className="w-6 h-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 bg-sidebar-background border-sidebar-border">
+      <SheetContent side="left" className="w-72 p-0 bg-sidebar-background border-sidebar-border flex flex-col overflow-hidden">
         {/* Profile header */}
-        <div className="gradient-primary px-6 pt-10 pb-6 flex flex-col items-center">
+        <div className="gradient-primary px-6 pt-10 pb-6 flex flex-col items-center shrink-0">
           <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold text-white mb-3 border-2 border-white/40">
             {initials}
           </div>
@@ -72,45 +72,47 @@ export default function ProducerSidebar() {
           </Button>
         </div>
 
-        {/* Menu items */}
-        <nav className="flex flex-col py-4">
-          {MENU_ITEMS.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
+        {/* Scrollable menu area */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="flex flex-col py-4">
+            {MENU_ITEMS.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => handleNav(item.path)}
+                  className={`flex items-center gap-4 px-6 py-3.5 text-sm font-medium transition-colors
+                    ${isActive
+                      ? 'text-primary bg-sidebar-accent'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-primary'
+                    }`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Admin link */}
+          {isAdmin && (
+            <div className="border-t border-sidebar-border px-6 py-2">
               <button
-                key={item.label}
-                onClick={() => handleNav(item.path)}
-                className={`flex items-center gap-4 px-6 py-3.5 text-sm font-medium transition-colors
-                  ${isActive
-                    ? 'text-primary bg-sidebar-accent'
-                    : 'text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-primary'
+                onClick={() => handleNav('/admin')}
+                className={`flex items-center gap-4 w-full px-0 py-3.5 text-sm font-medium transition-colors
+                  ${location.pathname === '/admin'
+                    ? 'text-amber-500'
+                    : 'text-amber-500/80 hover:text-amber-500'
                   }`}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <Shield className="w-5 h-5" /> Painel ADM
               </button>
-            );
-          })}
-        </nav>
+            </div>
+          )}
+        </div>
 
-        {/* Admin link */}
-        {isAdmin && (
-          <div className="border-t border-sidebar-border px-6 py-2">
-            <button
-              onClick={() => handleNav('/admin')}
-              className={`flex items-center gap-4 w-full px-0 py-3.5 text-sm font-medium transition-colors
-                ${location.pathname === '/admin'
-                  ? 'text-amber-500'
-                  : 'text-amber-500/80 hover:text-amber-500'
-                }`}
-            >
-              <Shield className="w-5 h-5" /> Painel ADM
-            </button>
-          </div>
-        )}
-
-        {/* Logout */}
-        <div className="mt-auto border-t border-sidebar-border px-6 py-4">
+        {/* Logout - always at bottom */}
+        <div className="shrink-0 border-t border-sidebar-border px-6 py-4">
           <button
             onClick={handleLogout}
             className="flex items-center gap-4 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
