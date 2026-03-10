@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
   Menu, Home, PlusCircle, TicketCheck, Archive,
-  BarChart3, User, LogOut, Users, Trash2, DollarSign
+  BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,7 +23,7 @@ const MENU_ITEMS = [
 export default function ProducerSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
 
   const handleNav = (path: string) => {
@@ -92,6 +92,22 @@ export default function ProducerSidebar() {
             );
           })}
         </nav>
+
+        {/* Admin link */}
+        {isAdmin && (
+          <div className="border-t border-sidebar-border px-6 py-2">
+            <button
+              onClick={() => handleNav('/admin')}
+              className={`flex items-center gap-4 w-full px-0 py-3.5 text-sm font-medium transition-colors
+                ${location.pathname === '/admin'
+                  ? 'text-amber-500'
+                  : 'text-amber-500/80 hover:text-amber-500'
+                }`}
+            >
+              <Shield className="w-5 h-5" /> Painel ADM
+            </button>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="mt-auto border-t border-sidebar-border px-6 py-4">
