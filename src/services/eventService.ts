@@ -5,12 +5,21 @@ export type Event = Tables<'events'>;
 export type EventInsert = TablesInsert<'events'>;
 export type EventUpdate = TablesUpdate<'events'>;
 
+async function withTimeout<T>(promise: Promise<T>, ms = 8000): Promise<T> {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Request timeout')), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
 export async function getEvents(): Promise<Event[]> {
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .is('deleted_at', null)
-    .order('date', { ascending: true });
+  const { data, error } = await withTimeout(
+    supabase
+      .from('events')
+      .select('*')
+      .is('deleted_at', null)
+      .order('date', { ascending: true })
+  );
   if (error) throw error;
   return data || [];
 }
