@@ -23,15 +23,17 @@ interface CheckoutItem extends CartItem {
   group_size: number;
 }
 
-let stripePromise: Promise<Stripe | null> | null = null;
+let cachedStripePromise: Promise<Stripe | null> | null = null;
 
-async function getStripePromise() {
-  if (stripePromise) return stripePromise;
-  const { data } = await supabase.functions.invoke('get-stripe-key');
-  if (data?.publishableKey) {
-    stripePromise = loadStripe(data.publishableKey);
-  }
-  return stripePromise;
+function getStripeInstance(): Promise<Stripe | null> {
+  if (cachedStripePromise) return cachedStripePromise;
+  cachedStripePromise = supabase.functions.invoke('get-stripe-key').then(({ data }) => {
+    if (data?.publishableKey) {
+      return loadStripe(data.publishableKey);
+    }
+    return null;
+  });
+  return cachedStripePromise;
 }
 
 export default function CheckoutPage() {
@@ -43,10 +45,10 @@ export default function CheckoutPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
 
   useEffect(() => {
-    getStripePromise().then(p => setStripe(p));
+    setStripePromise(getStripeInstance());
   }, []);
 
   const { data: event } = useQuery({
