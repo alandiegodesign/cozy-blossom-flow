@@ -11,36 +11,36 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+    const dbUrl = Deno.env.get("SUPABASE_DB_URL")!;
     const url = new URL(req.url);
     const creatorId = url.searchParams.get("creator_id");
 
-    let query = supabase
-      .from("events")
-      .select("*")
-      .is("deleted_at", null)
-      .order("date", { ascending: true });
+    // Use the postgres module available in Deno edge runtime
+    const { default: postgres } = await import("https://deno.land/x/postgresjs@v3.4.5/mod.js");
+    const sql = postgres(dbUrl, { max: 1 });
 
+    let events;
     if (creatorId) {
-      query = query.eq("created_by", creatorId);
+      events = await sql`
+        SELECT * FROM public.events 
+        WHERE deleted_at IS NULL AND created_by = ${creatorId}::uuid
+        ORDER BY date ASC
+      `;
+    } else {
+      events = await sql`
+        SELECT * FROM public.events 
+        WHERE deleted_at IS NULL
+        ORDER BY date ASC
+      `;
     }
 
-    const { data, error } = await query;
+    await sql.end();
 
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify(data || []), {
+    return new Response(JSON.stringify(events), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("get-events error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
