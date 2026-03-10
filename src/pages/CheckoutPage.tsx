@@ -2,14 +2,17 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getEvent } from '@/services/eventService';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, CreditCard, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from 'lucide-react';
+import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from 'lucide-react';
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
+import { loadStripe } from '@stripe/stripe-js';
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
@@ -28,6 +31,8 @@ export default function CheckoutPage() {
   const location = useLocation();
   const { user, profile } = useAuth();
   const state = location.state as { items: CheckoutItem[]; total: number } | null;
+  const [showPayment, setShowPayment] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { data: event } = useQuery({
@@ -44,7 +49,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const handlePayment = async () => {
+  const handleStartPayment = async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -63,8 +68,9 @@ export default function CheckoutPage() {
       });
 
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
+      if (data?.clientSecret) {
+        setClientSecret(data.clientSecret);
+        setShowPayment(true);
       } else {
         toast.error('Erro ao iniciar pagamento.');
       }
@@ -74,6 +80,29 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  if (showPayment && clientSecret) {
+    return (
+      <div className="min-h-screen pb-8">
+        <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
+          <div className="max-w-2xl mx-auto">
+            <button onClick={() => setShowPayment(false)} className="flex items-center gap-2 text-white/80 mb-4">
+              <ArrowLeft className="w-5 h-5" /> Voltar ao resumo
+            </button>
+            <h1 className="font-display font-bold text-2xl text-white">Pagamento</h1>
+          </div>
+        </div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden p-1">
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+              <EmbeddedCheckout className="rounded-xl" />
+            </EmbeddedCheckoutProvider>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8">
@@ -137,26 +166,11 @@ export default function CheckoutPage() {
           <p className="font-display font-bold text-4xl text-gradient">R$ {state.total.toFixed(2)}</p>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-5">
-          <h3 className="font-display font-semibold mb-3">Formas de Pagamento</h3>
-          <div className="flex gap-3">
-            <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-2 text-sm">
-              <CreditCard className="w-4 h-4 text-primary" />
-              <span>Cartão</span>
-            </div>
-            <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-2 text-sm">
-              <span className="text-primary font-bold text-xs">PIX</span>
-              <span>PIX</span>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">Você escolherá o método na próxima tela</p>
-        </div>
-
-        <Button onClick={handlePayment} disabled={loading}
-          className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center gap-2">
-          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <CreditCard className="w-6 h-6" />}
-          {loading ? 'Redirecionando...' : 'Ir para Pagamento'}
-        </Button>
+        <button onClick={handleStartPayment} disabled={loading}
+          className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center justify-center gap-2 text-white disabled:opacity-50">
+          {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : null}
+          {loading ? 'Preparando pagamento...' : 'Ir para Pagamento'}
+        </button>
         <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
           Descartar pedido
         </button>
