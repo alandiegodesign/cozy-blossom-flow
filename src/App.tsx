@@ -54,7 +54,7 @@ function ProducerRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!session) return <Navigate to="/login" replace />;
   if (profile && profile.user_type !== 'produtor') return <Navigate to="/" replace />;
-  return <>{children}</>;
+  return <ProducerLayout>{children}</ProducerLayout>;
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
