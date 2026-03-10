@@ -5,40 +5,25 @@ export type Event = Tables<'events'>;
 export type EventInsert = TablesInsert<'events'>;
 export type EventUpdate = TablesUpdate<'events'>;
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-async function fetchEventsViaEdge(creatorId?: string): Promise<Event[]> {
-  const url = new URL(`${SUPABASE_URL}/functions/v1/get-events`);
-  if (creatorId) url.searchParams.set('creator_id', creatorId);
-  
-  const session = (await supabase.auth.getSession()).data.session;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
-  
-  try {
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-      headers: {
-        'Authorization': `Bearer ${session?.access_token || SUPABASE_KEY}`,
-        'apikey': SUPABASE_KEY,
-      },
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`Edge function error: ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
-}
-
 export async function getEvents(): Promise<Event[]> {
-  return fetchEventsViaEdge();
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .is('deleted_at', null)
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getEventsByCreator(userId: string): Promise<Event[]> {
-  return fetchEventsViaEdge(userId);
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', userId)
+    .is('deleted_at', null)
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getDeletedEventsByCreator(userId: string): Promise<Event[]> {
