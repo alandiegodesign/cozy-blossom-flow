@@ -10,7 +10,7 @@ import {
 } from '@/services/adminService';
 import {
   Shield, Users, Calendar, DollarSign, Ticket, Search, ChevronRight,
-  Music, Star, Crown, UtensilsCrossed, UsersRound,
+  Music, Star, Crown, UtensilsCrossed, UsersRound, ArrowLeft,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -121,6 +121,9 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen pb-8">
       <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 px-6 pt-8 pb-12 rounded-b-[2rem]">
         <div className="max-w-3xl mx-auto">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-white/80 mb-4 hover:text-white transition-colors">
+            <ArrowLeft className="w-5 h-5" /> Voltar
+          </button>
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-7 h-7 text-amber-400" />
             <h1 className="font-display font-bold text-2xl text-white">Painel ADM</h1>
