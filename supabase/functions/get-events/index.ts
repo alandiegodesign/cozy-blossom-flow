@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -11,32 +9,36 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const dbUrl = Deno.env.get("SUPABASE_DB_URL")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const url = new URL(req.url);
     const creatorId = url.searchParams.get("creator_id");
 
-    // Use the postgres module available in Deno edge runtime
-    const { default: postgres } = await import("https://deno.land/x/postgresjs@v3.4.5/mod.js");
-    const sql = postgres(dbUrl, { max: 1 });
-
-    let events;
+    // Build the PostgREST URL with service role (bypasses RLS)
+    let restUrl = `${supabaseUrl}/rest/v1/events?select=*&deleted_at=is.null&order=date.asc`;
     if (creatorId) {
-      events = await sql`
-        SELECT * FROM public.events 
-        WHERE deleted_at IS NULL AND created_by = ${creatorId}::uuid
-        ORDER BY date ASC
-      `;
-    } else {
-      events = await sql`
-        SELECT * FROM public.events 
-        WHERE deleted_at IS NULL
-        ORDER BY date ASC
-      `;
+      restUrl += `&created_by=eq.${creatorId}`;
     }
 
-    await sql.end();
+    const res = await fetch(restUrl, {
+      headers: {
+        "apikey": serviceKey,
+        "Authorization": `Bearer ${serviceKey}`,
+        "Accept": "application/json",
+      },
+    });
 
-    return new Response(JSON.stringify(events), {
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("PostgREST error:", res.status, body);
+      return new Response(JSON.stringify({ error: body }), {
+        status: res.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const data = await res.json();
+    return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
