@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, ComponentType } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,7 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
-const HomePage = lazy(() => import("./pages/HomePage"));
+function lazyRetry(fn: () => Promise<{ default: ComponentType<any> }>) {
+  return lazy(() => fn().catch(() => {
+    window.location.reload();
+    return new Promise(() => {}); // never resolves, page will reload
+  }));
+}
+
+const HomePage = lazyRetry(() => import("./pages/HomePage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
 const EditEventPage = lazy(() => import("./pages/EditEventPage"));
