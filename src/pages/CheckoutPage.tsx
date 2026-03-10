@@ -97,7 +97,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (showPayment && clientSecret && stripe) {
+  if (showPayment && clientSecret && stripePromise) {
     return (
       <div className="min-h-screen pb-8">
         <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
