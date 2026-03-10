@@ -6,13 +6,11 @@ import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from '
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
@@ -25,6 +23,19 @@ interface CheckoutItem extends CartItem {
   group_size: number;
 }
 
+let cachedStripePromise: Promise<Stripe | null> | null = null;
+
+function getStripeInstance(): Promise<Stripe | null> {
+  if (cachedStripePromise) return cachedStripePromise;
+  cachedStripePromise = supabase.functions.invoke('get-stripe-key').then(({ data }) => {
+    if (data?.publishableKey) {
+      return loadStripe(data.publishableKey);
+    }
+    return null;
+  });
+  return cachedStripePromise;
+}
+
 export default function CheckoutPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -34,6 +45,11 @@ export default function CheckoutPage() {
   const [showPayment, setShowPayment] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+
+  useEffect(() => {
+    setStripePromise(getStripeInstance());
+  }, []);
 
   const { data: event } = useQuery({
     queryKey: ['event', eventId],
@@ -81,7 +97,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (showPayment && clientSecret) {
+  if (showPayment && clientSecret && stripePromise) {
     return (
       <div className="min-h-screen pb-8">
         <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
