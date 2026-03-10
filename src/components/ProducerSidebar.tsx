@@ -7,6 +7,7 @@ import {
   BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield
 } from 'lucide-react';
 import { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MENU_ITEMS = [
   { label: 'Início', icon: Home, path: '/' },
@@ -20,10 +21,95 @@ const MENU_ITEMS = [
   { label: 'Perfil', icon: User, path: '/profile' },
 ];
 
-export default function ProducerSidebar() {
-  const navigate = useNavigate();
+function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
   const location = useLocation();
   const { profile, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const initials = (profile?.name || 'U').charAt(0).toUpperCase();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const handleSwitchToClient = () => {
+    onNav('/?view=client');
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Profile header */}
+      <div className="gradient-primary px-4 pt-6 pb-4 flex flex-col items-center shrink-0">
+        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold text-white mb-2 border-2 border-white/40">
+          {initials}
+        </div>
+        <p className="font-display font-bold text-white text-sm">{profile?.name || 'Usuário'}</p>
+        <span className="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white uppercase tracking-wider">
+          Produtor
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2 w-full border-white/30 text-white hover:bg-white/20 bg-white/10 text-xs h-7"
+          onClick={handleSwitchToClient}
+        >
+          <Users className="w-3.5 h-3.5 mr-1.5" /> Mudar para Cliente
+        </Button>
+      </div>
+
+      {/* Menu */}
+      <nav className="flex-1 flex flex-col py-2">
+        {MENU_ITEMS.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.label}
+              onClick={() => onNav(item.path)}
+              className={`flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors
+                ${isActive
+                  ? 'text-primary bg-sidebar-accent'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-primary'
+                }`}
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              {item.label}
+            </button>
+          );
+        })}
+
+        {/* Admin link */}
+        {isAdmin && (
+          <button
+            onClick={() => onNav('/admin')}
+            className={`flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors border-t border-sidebar-border mt-1 pt-3
+              ${location.pathname === '/admin'
+                ? 'text-amber-500'
+                : 'text-amber-500/80 hover:text-amber-500'
+              }`}
+          >
+            <Shield className="w-4 h-4 shrink-0" /> Painel ADM
+          </button>
+        )}
+      </nav>
+
+      {/* Logout */}
+      <div className="shrink-0 border-t border-sidebar-border px-4 py-3">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+        >
+          <LogOut className="w-4 h-4" /> Sair da conta
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Fixed sidebar for desktop, Sheet drawer for mobile */
+export default function ProducerSidebar() {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
   const handleNav = (path: string) => {
@@ -31,20 +117,10 @@ export default function ProducerSidebar() {
     navigate(path);
   };
 
-  const handleSwitchToClient = async () => {
-    setOpen(false);
-    // Navigate to a client-view mode — we'll use a query param
-    navigate('/?view=client');
-  };
+  // Desktop: render nothing here (fixed sidebar is in ProducerLayout)
+  if (!isMobile) return null;
 
-  const handleLogout = async () => {
-    setOpen(false);
-    await signOut();
-    navigate('/login');
-  };
-
-  const initials = (profile?.name || 'U').charAt(0).toUpperCase();
-
+  // Mobile: Sheet drawer
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -52,75 +128,20 @@ export default function ProducerSidebar() {
           <Menu className="w-6 h-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0 bg-sidebar-background border-sidebar-border flex flex-col overflow-hidden">
-        {/* Profile header */}
-        <div className="gradient-primary px-6 pt-10 pb-6 flex flex-col items-center shrink-0">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold text-white mb-3 border-2 border-white/40">
-            {initials}
-          </div>
-          <p className="font-display font-bold text-white text-lg">{profile?.name || 'Usuário'}</p>
-          <span className="mt-1 px-3 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white uppercase tracking-wider">
-            Produtor
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-4 w-full border-white/30 text-white hover:bg-white/20 bg-white/10"
-            onClick={handleSwitchToClient}
-          >
-            <Users className="w-4 h-4 mr-2" /> Mudar para Cliente
-          </Button>
-        </div>
-
-        {/* Scrollable menu area */}
-        <div className="flex-1 overflow-y-auto">
-          <nav className="flex flex-col py-4">
-            {MENU_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => handleNav(item.path)}
-                  className={`flex items-center gap-4 px-6 py-3.5 text-sm font-medium transition-colors
-                    ${isActive
-                      ? 'text-primary bg-sidebar-accent'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-primary'
-                    }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Admin link */}
-          {isAdmin && (
-            <div className="border-t border-sidebar-border px-6 py-2">
-              <button
-                onClick={() => handleNav('/admin')}
-                className={`flex items-center gap-4 w-full px-0 py-3.5 text-sm font-medium transition-colors
-                  ${location.pathname === '/admin'
-                    ? 'text-amber-500'
-                    : 'text-amber-500/80 hover:text-amber-500'
-                  }`}
-              >
-                <Shield className="w-5 h-5" /> Painel ADM
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Logout - always at bottom */}
-        <div className="shrink-0 border-t border-sidebar-border px-6 py-4">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-4 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
-          >
-            <LogOut className="w-5 h-5" /> Sair da conta
-          </button>
-        </div>
+      <SheetContent side="left" className="w-64 p-0 bg-sidebar-background border-sidebar-border flex flex-col overflow-hidden">
+        <SidebarContent_ onNav={handleNav} />
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** Fixed sidebar component for desktop layout */
+export function FixedProducerSidebar() {
+  const navigate = useNavigate();
+
+  return (
+    <aside className="hidden md:flex w-60 shrink-0 h-screen sticky top-0 bg-sidebar-background border-r border-sidebar-border flex-col">
+      <SidebarContent_ onNav={(path) => navigate(path)} />
+    </aside>
   );
 }

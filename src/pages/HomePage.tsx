@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import ProducerSidebar from '@/components/ProducerSidebar';
+import ProducerLayout from '@/components/ProducerLayout';
 import goodVibesLogo from '@/assets/good-vibes-logo.png';
 
 export default function HomePage() {
@@ -68,7 +69,7 @@ export default function HomePage() {
   };
 
   if (showAsProducer) {
-    return <ProducerHome
+    return <ProducerLayout><ProducerHome
       profile={profile}
       events={events}
       upcomingEvents={upcomingEvents}
@@ -81,7 +82,7 @@ export default function HomePage() {
       setSearch={setSearch}
       filtered={filtered}
       navigate={navigate}
-    />;
+    /></ProducerLayout>;
   }
 
   return (

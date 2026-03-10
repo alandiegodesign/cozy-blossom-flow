@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import ProducerLayout from "@/components/ProducerLayout";
 
 function lazyRetry(fn: () => Promise<{ default: ComponentType<any> }>) {
   return lazy(() => fn().catch(() => {
@@ -53,7 +54,7 @@ function ProducerRoute({ children }: { children: React.ReactNode }) {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!session) return <Navigate to="/login" replace />;
   if (profile && profile.user_type !== 'produtor') return <Navigate to="/" replace />;
-  return <>{children}</>;
+  return <ProducerLayout>{children}</ProducerLayout>;
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
