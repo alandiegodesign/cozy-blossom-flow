@@ -5,27 +5,25 @@ export type Event = Tables<'events'>;
 export type EventInsert = TablesInsert<'events'>;
 export type EventUpdate = TablesUpdate<'events'>;
 
-async function withTimeout<T>(fn: () => PromiseLike<T>, ms = 8000): Promise<T> {
-  const timeout = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error('Request timeout')), ms)
-  );
-  return Promise.race([fn() as Promise<T>, timeout]);
-}
-
 export async function getEvents(): Promise<Event[]> {
-  const { data, error } = await withTimeout(() =>
-    supabase.rpc('get_events_list')
-  );
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .is('deleted_at', null)
+    .order('date', { ascending: true });
   if (error) throw error;
-  return (data as unknown as Event[]) || [];
+  return data || [];
 }
 
 export async function getEventsByCreator(userId: string): Promise<Event[]> {
-  const { data, error } = await withTimeout(() =>
-    supabase.rpc('get_events_list', { p_creator_id: userId })
-  );
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', userId)
+    .is('deleted_at', null)
+    .order('date', { ascending: true });
   if (error) throw error;
-  return (data as unknown as Event[]) || [];
+  return data || [];
 }
 
 export async function getDeletedEventsByCreator(userId: string): Promise<Event[]> {
