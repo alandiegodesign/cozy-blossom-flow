@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const [stripe, setStripe] = useState<Promise<Stripe | null> | null>(null);
 
   useEffect(() => {
-    getStripePromise().then(setStripe);
+    getStripePromise().then(p => setStripe(p));
   }, []);
 
   const { data: event } = useQuery({
