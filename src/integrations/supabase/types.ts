@@ -375,6 +375,36 @@ export type Database = {
         }[]
       }
       get_email_by_cpf: { Args: { p_cpf: string }; Returns: string }
+      get_events_list: {
+        Args: { p_creator_id?: string }
+        Returns: {
+          banner_image: string | null
+          created_at: string
+          created_by: string
+          date: string
+          deleted_at: string | null
+          description: string
+          end_date: string | null
+          end_time: string | null
+          id: string
+          is_visible: boolean
+          location_address: string | null
+          location_name: string | null
+          map_image: string | null
+          policies: Json | null
+          sales_end_time: string | null
+          tags: Json | null
+          time: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_my_ticket_codes: {
         Args: { p_order_id: string; p_user_id: string }
         Returns: {
