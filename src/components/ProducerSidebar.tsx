@@ -93,6 +93,22 @@ export default function ProducerSidebar() {
           })}
         </nav>
 
+        {/* Admin link */}
+        {isAdmin && (
+          <div className="border-t border-sidebar-border px-6 py-2">
+            <button
+              onClick={() => handleNav('/admin')}
+              className={`flex items-center gap-4 w-full px-0 py-3.5 text-sm font-medium transition-colors
+                ${location.pathname === '/admin'
+                  ? 'text-amber-500'
+                  : 'text-amber-500/80 hover:text-amber-500'
+                }`}
+            >
+              <Shield className="w-5 h-5" /> Painel ADM
+            </button>
+          </div>
+        )}
+
         {/* Logout */}
         <div className="mt-auto border-t border-sidebar-border px-6 py-4">
           <button
