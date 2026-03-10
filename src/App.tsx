@@ -14,30 +14,30 @@ function lazyRetry(fn: () => Promise<{ default: ComponentType<any> }>) {
 }
 
 const HomePage = lazyRetry(() => import("./pages/HomePage"));
-const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
-const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
-const EditEventPage = lazy(() => import("./pages/EditEventPage"));
-const ProducerDashboardPage = lazy(() => import("./pages/ProducerDashboardPage"));
-const DashboardOverviewPage = lazy(() => import("./pages/DashboardOverviewPage"));
-const ManageLocationsPage = lazy(() => import("./pages/ManageLocationsPage"));
-const TicketSelectionPage = lazy(() => import("./pages/TicketSelectionPage"));
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const SignupPage = lazy(() => import("./pages/SignupPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
-const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const SoldTicketsPage = lazy(() => import("./pages/SoldTicketsPage"));
-const ArchivedEventsPage = lazy(() => import("./pages/ArchivedEventsPage"));
-const TrashPage = lazy(() => import("./pages/TrashPage"));
-const RevenueDashboardPage = lazy(() => import("./pages/RevenueDashboardPage"));
-const ValidateTicketsPage = lazy(() => import("./pages/ValidateTicketsPage"));
-const MyPagePage = lazy(() => import("./pages/MyPagePage"));
-const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
-const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
-const AdminProducerDetailPage = lazy(() => import("./pages/AdminProducerDetailPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const EventDetailPage = lazyRetry(() => import("./pages/EventDetailPage"));
+const CreateEventPage = lazyRetry(() => import("./pages/CreateEventPage"));
+const EditEventPage = lazyRetry(() => import("./pages/EditEventPage"));
+const ProducerDashboardPage = lazyRetry(() => import("./pages/ProducerDashboardPage"));
+const DashboardOverviewPage = lazyRetry(() => import("./pages/DashboardOverviewPage"));
+const ManageLocationsPage = lazyRetry(() => import("./pages/ManageLocationsPage"));
+const TicketSelectionPage = lazyRetry(() => import("./pages/TicketSelectionPage"));
+const CheckoutPage = lazyRetry(() => import("./pages/CheckoutPage"));
+const MyOrdersPage = lazyRetry(() => import("./pages/MyOrdersPage"));
+const LoginPage = lazyRetry(() => import("./pages/LoginPage"));
+const SignupPage = lazyRetry(() => import("./pages/SignupPage"));
+const ForgotPasswordPage = lazyRetry(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazyRetry(() => import("./pages/ResetPasswordPage"));
+const ProfilePage = lazyRetry(() => import("./pages/ProfilePage"));
+const SoldTicketsPage = lazyRetry(() => import("./pages/SoldTicketsPage"));
+const ArchivedEventsPage = lazyRetry(() => import("./pages/ArchivedEventsPage"));
+const TrashPage = lazyRetry(() => import("./pages/TrashPage"));
+const RevenueDashboardPage = lazyRetry(() => import("./pages/RevenueDashboardPage"));
+const ValidateTicketsPage = lazyRetry(() => import("./pages/ValidateTicketsPage"));
+const MyPagePage = lazyRetry(() => import("./pages/MyPagePage"));
+const PaymentSuccessPage = lazyRetry(() => import("./pages/PaymentSuccessPage"));
+const AdminDashboardPage = lazyRetry(() => import("./pages/AdminDashboardPage"));
+const AdminProducerDetailPage = lazyRetry(() => import("./pages/AdminProducerDetailPage"));
+const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
