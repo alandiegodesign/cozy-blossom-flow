@@ -28,7 +28,9 @@ export default function HomePage() {
     queryKey: isAdmin ? ['all-events'] : showAsProducer ? ['my-events', user?.id] : ['events'],
     queryFn: () => isAdmin ? getEvents() : showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
     enabled: showAsProducer ? !!user : true,
-    retry: 2,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 30000,
   });
 
   const { data: sales = [] } = useQuery({
