@@ -82,7 +82,7 @@ export default function HomePage() {
       setSearch={setSearch}
       filtered={filtered}
       navigate={navigate}
-    /></ProducerLayout>;
+    />;
   }
 
   return (
