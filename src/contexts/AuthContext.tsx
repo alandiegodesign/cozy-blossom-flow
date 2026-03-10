@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  console.log('[AuthProvider] render, loading:', loading, 'session:', !!session);
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
