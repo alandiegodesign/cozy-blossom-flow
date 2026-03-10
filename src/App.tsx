@@ -64,34 +64,40 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>
+);
+
 const AppRoutes = () => (
-  <Routes>
-    <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-    <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
-    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-    <Route path="/reset-password" element={<ResetPasswordPage />} />
-    <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-    <Route path="/event/:id" element={<ProtectedRoute><EventDetailPage /></ProtectedRoute>} />
-    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-    <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
-    <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
-    <Route path="/edit-event/:id" element={<ProducerRoute><EditEventPage /></ProducerRoute>} />
-    <Route path="/my-page" element={<ProducerRoute><MyPagePage /></ProducerRoute>} />
-    <Route path="/dashboard" element={<ProducerRoute><DashboardOverviewPage /></ProducerRoute>} />
-    <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
-    <Route path="/revenue" element={<ProducerRoute><RevenueDashboardPage /></ProducerRoute>} />
-    <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
-    <Route path="/sold-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
-    <Route path="/archived" element={<ProducerRoute><ArchivedEventsPage /></ProducerRoute>} />
-    <Route path="/trash" element={<ProducerRoute><TrashPage /></ProducerRoute>} />
-    <Route path="/validate-tickets" element={<ProducerRoute><ValidateTicketsPage /></ProducerRoute>} />
-    <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
-    <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-    <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
-    <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
-    <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+  <Suspense fallback={<PageLoader />}>
+    <Routes>
+      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/event/:id" element={<ProtectedRoute><EventDetailPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+      <Route path="/create-event" element={<ProducerRoute><CreateEventPage /></ProducerRoute>} />
+      <Route path="/edit-event/:id" element={<ProducerRoute><EditEventPage /></ProducerRoute>} />
+      <Route path="/my-page" element={<ProducerRoute><MyPagePage /></ProducerRoute>} />
+      <Route path="/dashboard" element={<ProducerRoute><DashboardOverviewPage /></ProducerRoute>} />
+      <Route path="/dashboard/:eventId" element={<ProducerRoute><ProducerDashboardPage /></ProducerRoute>} />
+      <Route path="/revenue" element={<ProducerRoute><RevenueDashboardPage /></ProducerRoute>} />
+      <Route path="/manage-locations/:eventId" element={<ProducerRoute><ManageLocationsPage /></ProducerRoute>} />
+      <Route path="/sold-tickets" element={<ProducerRoute><SoldTicketsPage /></ProducerRoute>} />
+      <Route path="/archived" element={<ProducerRoute><ArchivedEventsPage /></ProducerRoute>} />
+      <Route path="/trash" element={<ProducerRoute><TrashPage /></ProducerRoute>} />
+      <Route path="/validate-tickets" element={<ProducerRoute><ValidateTicketsPage /></ProducerRoute>} />
+      <Route path="/tickets/:eventId" element={<ProtectedRoute><TicketSelectionPage /></ProtectedRoute>} />
+      <Route path="/checkout/:eventId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+      <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccessPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+      <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </Suspense>
 );
 
 const App = () => (
