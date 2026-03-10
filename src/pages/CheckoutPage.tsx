@@ -111,7 +111,7 @@ export default function CheckoutPage() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6">
           <div className="bg-card rounded-2xl border border-border overflow-hidden p-1">
-            <EmbeddedCheckoutProvider stripe={stripe} options={{ clientSecret }}>
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
               <EmbeddedCheckout className="rounded-xl" />
             </EmbeddedCheckoutProvider>
           </div>
