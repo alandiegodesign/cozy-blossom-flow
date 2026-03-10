@@ -69,7 +69,7 @@ export default function HomePage() {
   };
 
   if (showAsProducer) {
-    return <ProducerHome
+    return <ProducerLayout><ProducerHome
       profile={profile}
       events={events}
       upcomingEvents={upcomingEvents}
@@ -82,7 +82,7 @@ export default function HomePage() {
       setSearch={setSearch}
       filtered={filtered}
       navigate={navigate}
-    />;
+    /></ProducerLayout>;
   }
 
   return (
