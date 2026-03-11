@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Search, Ticket, LogOut, ShoppingBag, DollarSign,
-  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar, AlertTriangle, RefreshCw, Shield
+  CalendarCheck, Eye, ChevronLeft, ChevronRight, Calendar, AlertTriangle, RefreshCw, Shield, FileEdit
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -24,6 +24,7 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const isProdutor = profile?.user_type === 'produtor';
   const clientView = searchParams.get('view') === 'client';
+  const draftsFilter = searchParams.get('filter') === 'drafts';
   const showAsProducer = isProdutor && !clientView;
 
   const { data: events = [], isLoading, isError, refetch } = useQuery({
@@ -47,10 +48,14 @@ export default function HomePage() {
     if (!showAsProducer && !isAdmin) {
       list = list.filter(e => e.is_visible !== false);
     }
+    // Drafts filter for producers
+    if (draftsFilter && showAsProducer) {
+      list = list.filter(e => e.is_visible === false);
+    }
     if (!search.trim()) return list;
     const q = search.toLowerCase();
     return list.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
-  }, [events, search, showAsProducer, isAdmin]);
+  }, [events, search, showAsProducer, isAdmin, draftsFilter]);
 
   // Producer stats
   const stats = useMemo(() => {
@@ -85,6 +90,7 @@ export default function HomePage() {
           setSearch={setSearch}
           filtered={filtered}
           navigate={navigate}
+          draftsFilter={draftsFilter}
         />
       </ProducerLayout>
     );
@@ -168,7 +174,7 @@ export default function HomePage() {
 
 // --- Producer Dashboard Home ---
 function ProducerHome({
-  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate,
+  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate, draftsFilter,
 }: {
   profile: any;
   events: any[];
@@ -182,6 +188,7 @@ function ProducerHome({
   setSearch: (s: string) => void;
   filtered: any[];
   navigate: (path: string) => void;
+  draftsFilter: boolean;
 }) {
   const initials = (profile?.name || 'U').charAt(0).toUpperCase();
 
@@ -230,8 +237,29 @@ function ProducerHome({
         ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground col-span-full">Carregando eventos...</div>
         ) : (
+        draftsFilter ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg">Rascunhos</h3>
+              <Button size="sm" variant="outline" className="rounded-full text-xs gap-1" onClick={() => navigate('/')}>
+                Ver todos
+              </Button>
+            </div>
+            {filtered.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filtered.map(event => (
+                  <EventCard key={event.id} event={event} showDraftBadge />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card rounded-2xl border border-border p-8 text-center text-muted-foreground">
+                <FileEdit className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="font-display text-sm">Nenhum rascunho encontrado</p>
+              </div>
+            )}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upcoming Events Carousel */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-lg">Próximos Eventos</h3>
@@ -239,11 +267,10 @@ function ProducerHome({
                 Criar Evento
               </Button>
             </div>
-
             {upcomingEvents.length > 0 ? (
               <div className="space-y-3">
                 {upcomingEvents.map(event => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} showDraftBadge />
                 ))}
               </div>
             ) : (
@@ -253,8 +280,6 @@ function ProducerHome({
               </div>
             )}
           </div>
-
-          {/* Other Events List */}
           <div className="space-y-4">
             <h3 className="font-display font-bold text-lg">Outros eventos</h3>
             {pastEvents.length > 0 ? (
@@ -285,7 +310,7 @@ function ProducerHome({
             )}
           </div>
         </div>
-        )}
+        ))}
 
       </div>
 

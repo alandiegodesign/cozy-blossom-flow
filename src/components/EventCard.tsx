@@ -1,16 +1,18 @@
 import { Event } from '@/services/eventService';
 import { motion } from 'framer-motion';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface EventCardProps {
   event: Event;
+  showDraftBadge?: boolean;
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, showDraftBadge }: EventCardProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const clientView = searchParams.get('view') === 'client';
+  const isDraft = showDraftBadge && event.is_visible === false;
 
   return (
     <motion.div
@@ -18,9 +20,14 @@ export function EventCard({ event }: EventCardProps) {
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       onClick={() => navigate(`/event/${event.id}${clientView ? '?view=client' : ''}`)}
-      className="cursor-pointer rounded-2xl overflow-hidden bg-card border border-border group"
+      className={`cursor-pointer rounded-2xl overflow-hidden bg-card border group ${isDraft ? 'border-amber-500/50 opacity-80' : 'border-border'}`}
     >
       <div className="relative h-48 overflow-hidden">
+        {isDraft && (
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-amber-500/90 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+            <EyeOff className="w-3.5 h-3.5" /> Rascunho
+          </div>
+        )}
         {event.banner_image ? (
           <img src={event.banner_image} alt={event.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />

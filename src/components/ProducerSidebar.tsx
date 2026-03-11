@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
   Menu, Home, PlusCircle, TicketCheck, Archive,
-  BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield
+  BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield, FileEdit
 } from 'lucide-react';
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,6 +13,7 @@ const MENU_ITEMS = [
   { label: 'Início', icon: Home, path: '/' },
   { label: 'Minha Página', icon: User, path: '/my-page' },
   { label: 'Criar Evento', icon: PlusCircle, path: '/create-event' },
+  { label: 'Rascunhos', icon: FileEdit, path: '/?filter=drafts' },
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
   { label: 'Lixeira', icon: Trash2, path: '/trash' },
@@ -61,7 +62,8 @@ function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
       {/* Menu */}
       <nav className="flex-1 flex flex-col py-2">
         {MENU_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path;
+          const currentPath = location.pathname + location.search;
+          const isActive = item.path.includes('?') ? currentPath === item.path : (location.pathname === item.path && !location.search);
           return (
             <button
               key={item.label}
