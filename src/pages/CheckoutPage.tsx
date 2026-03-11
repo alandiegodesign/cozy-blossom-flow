@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 
 const ICONS: Record<LocationType, React.ElementType> = {

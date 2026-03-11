@@ -42,12 +42,24 @@ export default function SignupPage() {
       return;
     }
     setLoading(true);
+
+    // Check if CPF is already registered
+    const cpfClean = cleanCpf(cpf);
+    if (cpfClean) {
+      const { data: existingEmail } = await supabase.rpc('get_email_by_cpf', { p_cpf: cpfClean });
+      if (existingEmail) {
+        toast.error('Este CPF já está cadastrado em outra conta');
+        setLoading(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { name, user_type: userType, phone, cpf: cleanCpf(cpf) || undefined },
+        data: { name, user_type: userType, phone, cpf: cpfClean || undefined },
       },
     });
     setLoading(false);
