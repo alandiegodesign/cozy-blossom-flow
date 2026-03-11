@@ -30,32 +30,32 @@ serve(async (req) => {
     const user = authData.user;
     if (!user) throw new Error("Usuário não autenticado");
 
-    const { invoiceId } = await req.json();
-    if (!invoiceId) throw new Error("Invoice ID obrigatório");
+    const { sessionId } = await req.json();
+    if (!sessionId) throw new Error("Session ID obrigatório");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    const invoice = await stripe.invoices.retrieve(invoiceId);
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (invoice.status !== "paid") {
-      return new Response(JSON.stringify({ success: false, status: invoice.status }), {
+    if (session.payment_status !== "paid") {
+      return new Response(JSON.stringify({ success: false, status: session.payment_status }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const metadata = invoice.metadata!;
+    const metadata = session.metadata!;
     const eventId = metadata.event_id;
     const userId = metadata.user_id;
 
-    if (userId !== user.id) throw new Error("Fatura não pertence ao usuário");
+    if (userId !== user.id) throw new Error("Sessão não pertence ao usuário");
 
-    // Check if order already created for this invoice
+    // Check if order already created for this session
     const { data: existingOrder } = await supabaseAdmin
       .from("orders")
       .select("id")
-      .eq("stripe_session_id", invoiceId)
+      .eq("stripe_session_id", sessionId)
       .maybeSingle();
 
     if (existingOrder) {
@@ -92,7 +92,7 @@ serve(async (req) => {
         user_id: userId,
         total_amount: totalAmount,
         status: "confirmed",
-        stripe_session_id: invoiceId,
+        stripe_session_id: sessionId,
       })
       .select()
       .single();
