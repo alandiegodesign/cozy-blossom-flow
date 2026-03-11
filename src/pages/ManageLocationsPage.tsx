@@ -122,6 +122,46 @@ export default function ManageLocationsPage() {
     onError: () => toast.error('Erro ao alterar visibilidade'),
   });
 
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => updateLocation(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      setEditDialogOpen(false);
+      setEditingLoc(null);
+      toast.success('Local atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar local'),
+  });
+
+  const handleEditOpen = (loc: any) => {
+    setEditingLoc(loc);
+    setEditName(loc.name);
+    setEditDescription(loc.description || '');
+    setEditPrice(String(loc.price));
+    setEditQuantity(String(loc.quantity));
+    setEditGroupSize(String(loc.group_size || 1));
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    if (!editingLoc || !editName || !editPrice) { toast.error('Preencha os campos obrigatórios'); return; }
+    const isGroup = editingLoc.location_type === 'camarote_grupo' || editingLoc.location_type === 'bistro';
+    const newQty = isGroup ? 1 : parseInt(editQuantity) || editingLoc.quantity;
+    const sold = editingLoc.quantity - editingLoc.available_quantity;
+    const newAvailable = Math.max(0, newQty - sold);
+    editMutation.mutate({
+      id: editingLoc.id,
+      data: {
+        name: editName,
+        description: editDescription,
+        price: parseFloat(editPrice),
+        quantity: newQty,
+        available_quantity: newAvailable,
+        group_size: isGroup ? (parseInt(editGroupSize) || 1) : 1,
+      },
+    });
+  };
+
   const toggleSoldOutMutation = useMutation({
     mutationFn: ({ id, isSoldOut }: { id: string; isSoldOut: boolean }) => toggleLocationSoldOut(id, isSoldOut),
     onSuccess: () => {
