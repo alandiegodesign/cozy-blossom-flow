@@ -525,6 +525,46 @@ export default function ManageLocationsPage() {
           {locations.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum local cadastrado</p>}
         </div>
       </motion.div>
+
+      {/* Edit Location Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Local</DialogTitle></DialogHeader>
+          {editingLoc && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Nome</label>
+                <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+                <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} className="rounded-xl resize-none" rows={2} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Preço (R$)</label>
+                <Input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+              {(editingLoc.location_type === 'camarote_grupo' || editingLoc.location_type === 'bistro') ? (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Ingressos por grupo</label>
+                  <Input type="number" value={editGroupSize} onChange={e => setEditGroupSize(e.target.value)} className="h-12 rounded-xl" />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Quantidade total</label>
+                  <Input type="number" value={editQuantity} onChange={e => setEditQuantity(e.target.value)} className="h-12 rounded-xl" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Vendidos: {editingLoc.quantity - editingLoc.available_quantity} | Disponíveis: {editingLoc.available_quantity}
+                  </p>
+                </div>
+              )}
+              <Button onClick={handleEditSave} disabled={editMutation.isPending} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+                {editMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
