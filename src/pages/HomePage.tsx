@@ -28,9 +28,9 @@ export default function HomePage() {
   const showAsProducer = isProdutor && !clientView;
 
   const { data: events = [], isLoading, isError, refetch } = useQuery({
-    queryKey: isAdmin ? ['all-events'] : showAsProducer ? ['my-events', user?.id] : ['events'],
-    queryFn: () => isAdmin ? getEvents() : showAsProducer ? getEventsByCreator(user!.id) : getEvents(),
-    enabled: showAsProducer ? !!user : true,
+    queryKey: showAsProducer ? ['my-events', user?.id] : isAdmin ? ['all-events'] : ['events'],
+    queryFn: () => showAsProducer ? getEventsByCreator(user!.id) : isAdmin ? getEvents() : getEvents(),
+    enabled: showAsProducer || isAdmin ? !!user : true,
     retry: 1,
     retryDelay: 1000,
     staleTime: 30000,
