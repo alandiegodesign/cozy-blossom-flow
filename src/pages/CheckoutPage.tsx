@@ -62,13 +62,10 @@ export default function CheckoutPage() {
       });
 
       if (error) throw error;
-      if (data?.invoiceUrl) {
-        // Store invoiceId for verification on return
-        sessionStorage.setItem('pending_invoice_id', data.invoiceId);
-        // Redirect to Stripe hosted invoice page
-        window.location.href = data.invoiceUrl;
+      if (data?.url) {
+        window.location.href = data.url;
       } else {
-        toast.error('Erro ao gerar fatura de pagamento.');
+        toast.error('Erro ao iniciar pagamento.');
       }
     } catch {
       toast.error('Erro ao processar pagamento. Tente novamente.');
@@ -142,7 +139,7 @@ export default function CheckoutPage() {
         <button onClick={handleStartPayment} disabled={loading}
           className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center justify-center gap-2 text-white disabled:opacity-50">
           {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : null}
-          {loading ? 'Gerando fatura...' : 'Pagar com Cartão'}
+          {loading ? 'Preparando pagamento...' : 'Pagar com Cartão'}
         </button>
         <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
           Descartar pedido
