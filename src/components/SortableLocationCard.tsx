@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Trash2, Pencil } from 'lucide-react';
 import { LocationChip } from '@/components/LocationChip';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,10 @@ interface SortableLocationCardProps {
   onToggleActive: (id: string, isActive: boolean) => void;
   onToggleSoldOut: (id: string, isSoldOut: boolean) => void;
   onDelete: (id: string) => void;
+  onEdit?: (loc: any) => void;
 }
 
-export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onDelete }: SortableLocationCardProps) {
+export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onDelete, onEdit }: SortableLocationCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: loc.id });
 
   const style = {
@@ -51,6 +52,17 @@ export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onD
           onCheckedChange={(checked) => onToggleSoldOut(loc.id, !checked)}
           title={loc.is_sold_out ? 'Marcar como disponível' : 'Marcar como esgotado'}
         />
+        {onEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(loc)}
+            className="text-muted-foreground hover:text-foreground"
+            title="Editar local"
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
