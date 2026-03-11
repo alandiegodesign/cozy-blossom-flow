@@ -1,7 +1,10 @@
-import { Event } from '@/services/eventService';
+import { Event, toggleEventVisibility } from '@/services/eventService';
 import { motion } from 'framer-motion';
-import { CalendarDays, EyeOff } from 'lucide-react';
+import { CalendarDays, EyeOff, Send } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface EventCardProps {
   event: Event;
@@ -11,8 +14,23 @@ interface EventCardProps {
 export function EventCard({ event, showDraftBadge }: EventCardProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const clientView = searchParams.get('view') === 'client';
   const isDraft = showDraftBadge && event.is_visible === false;
+
+  const publishMutation = useMutation({
+    mutationFn: () => toggleEventVisibility(event.id, true),
+    onSuccess: () => {
+      toast.success('Evento publicado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+    },
+    onError: () => toast.error('Erro ao publicar evento'),
+  });
+
+  const handlePublish = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    publishMutation.mutate();
+  };
 
   return (
     <motion.div
@@ -27,6 +45,17 @@ export function EventCard({ event, showDraftBadge }: EventCardProps) {
           <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-amber-500/90 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
             <EyeOff className="w-3.5 h-3.5" /> Rascunho
           </div>
+        )}
+        {isDraft && (
+          <Button
+            size="sm"
+            onClick={handlePublish}
+            disabled={publishMutation.isPending}
+            className="absolute top-3 right-3 z-10 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg gap-1.5"
+          >
+            <Send className="w-3.5 h-3.5" />
+            {publishMutation.isPending ? 'Publicando...' : 'Publicar'}
+          </Button>
         )}
         {event.banner_image ? (
           <img src={event.banner_image} alt={event.title}
