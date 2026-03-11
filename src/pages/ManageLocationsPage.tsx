@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, getEventsByCreator } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, updateLocationSortOrders, getLocationColor, LocationType } from '@/services/ticketLocationService';
+import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, updateLocationSortOrders, updateLocation, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -74,6 +74,15 @@ export default function ManageLocationsPage() {
   const [batchQuantity, setBatchQuantity] = useState('');
   const [batchLoading, setBatchLoading] = useState(false);
 
+  // Edit dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingLoc, setEditingLoc] = useState<any>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editGroupSize, setEditGroupSize] = useState('');
+
   // Copy dialog
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyingEventId, setCopyingEventId] = useState<string | null>(null);
@@ -112,6 +121,46 @@ export default function ManageLocationsPage() {
     },
     onError: () => toast.error('Erro ao alterar visibilidade'),
   });
+
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => updateLocation(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      setEditDialogOpen(false);
+      setEditingLoc(null);
+      toast.success('Local atualizado!');
+    },
+    onError: () => toast.error('Erro ao atualizar local'),
+  });
+
+  const handleEditOpen = (loc: any) => {
+    setEditingLoc(loc);
+    setEditName(loc.name);
+    setEditDescription(loc.description || '');
+    setEditPrice(String(loc.price));
+    setEditQuantity(String(loc.quantity));
+    setEditGroupSize(String(loc.group_size || 1));
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    if (!editingLoc || !editName || !editPrice) { toast.error('Preencha os campos obrigatórios'); return; }
+    const isGroup = editingLoc.location_type === 'camarote_grupo' || editingLoc.location_type === 'bistro';
+    const newQty = isGroup ? 1 : parseInt(editQuantity) || editingLoc.quantity;
+    const sold = editingLoc.quantity - editingLoc.available_quantity;
+    const newAvailable = Math.max(0, newQty - sold);
+    editMutation.mutate({
+      id: editingLoc.id,
+      data: {
+        name: editName,
+        description: editDescription,
+        price: parseFloat(editPrice),
+        quantity: newQty,
+        available_quantity: newAvailable,
+        group_size: isGroup ? (parseInt(editGroupSize) || 1) : 1,
+      },
+    });
+  };
 
   const toggleSoldOutMutation = useMutation({
     mutationFn: ({ id, isSoldOut }: { id: string; isSoldOut: boolean }) => toggleLocationSoldOut(id, isSoldOut),
@@ -454,12 +503,13 @@ export default function ManageLocationsPage() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
                           <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
                             {locs.map(loc => (
-                              <SortableLocationCard
+                                <SortableLocationCard
                                 key={loc.id}
                                 loc={loc}
                                 onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
                                 onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
                                 onDelete={(id) => deleteMutation.mutate(id)}
+                                onEdit={handleEditOpen}
                               />
                             ))}
                           </SortableContext>
@@ -475,6 +525,46 @@ export default function ManageLocationsPage() {
           {locations.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum local cadastrado</p>}
         </div>
       </motion.div>
+
+      {/* Edit Location Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Local</DialogTitle></DialogHeader>
+          {editingLoc && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Nome</label>
+                <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+                <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} className="rounded-xl resize-none" rows={2} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Preço (R$)</label>
+                <Input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+              {(editingLoc.location_type === 'camarote_grupo' || editingLoc.location_type === 'bistro') ? (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Ingressos por grupo</label>
+                  <Input type="number" value={editGroupSize} onChange={e => setEditGroupSize(e.target.value)} className="h-12 rounded-xl" />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Quantidade total</label>
+                  <Input type="number" value={editQuantity} onChange={e => setEditQuantity(e.target.value)} className="h-12 rounded-xl" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Vendidos: {editingLoc.quantity - editingLoc.available_quantity} | Disponíveis: {editingLoc.available_quantity}
+                  </p>
+                </div>
+              )}
+              <Button onClick={handleEditSave} disabled={editMutation.isPending} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+                {editMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
