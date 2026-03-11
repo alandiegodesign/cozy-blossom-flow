@@ -10,7 +10,7 @@ import {
 } from '@/services/adminService';
 import {
   Shield, Users, Calendar, DollarSign, Ticket, Search, ChevronRight,
-  Music, Star, Crown, UtensilsCrossed, UsersRound, ArrowLeft,
+  Music, Star, Crown, UtensilsCrossed, UsersRound, ArrowLeft, ScanLine,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
