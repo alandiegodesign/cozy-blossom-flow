@@ -8,8 +8,11 @@ interface EventCardProps {
   showDraftBadge?: boolean;
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, showDraftBadge }: EventCardProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const clientView = searchParams.get('view') === 'client';
+  const isDraft = showDraftBadge && event.is_visible === false;
   const [searchParams] = useSearchParams();
   const clientView = searchParams.get('view') === 'client';
 
