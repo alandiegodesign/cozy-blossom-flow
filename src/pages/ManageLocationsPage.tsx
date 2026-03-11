@@ -506,10 +506,31 @@ export default function ManageLocationsPage() {
           )}
         </div>
 
-        {/* Locations grouped by type */}
+        {/* Locations list */}
         <div className="space-y-3">
           <h2 className="font-display font-semibold text-lg">Locais Cadastrados ({locations.length})</h2>
 
+          {/* Individual locations (non-batch types) as standalone cards */}
+          {individualLocations.length > 0 && (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, individualLocations)}>
+              <SortableContext items={individualLocations.map(l => l.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-2">
+                  {individualLocations.map(loc => (
+                    <SortableLocationCard
+                      key={loc.id}
+                      loc={loc}
+                      onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
+                      onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
+                      onDelete={(id) => deleteMutation.mutate(id)}
+                      onEdit={handleEditOpen}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+
+          {/* Grouped locations (batch types) in collapsible lists */}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => {
             const { active, over } = e;
             if (!over || active.id === over.id) return;
@@ -518,9 +539,8 @@ export default function ManageLocationsPage() {
             const newIndex = groupKeys.indexOf(over.id as string);
             if (oldIndex === -1 || newIndex === -1) return;
             const reorderedKeys = arrayMove(groupKeys, oldIndex, newIndex);
-            // Reassign sort_orders for all items based on new group order
             const updates: { id: string; sort_order: number }[] = [];
-            let order = 0;
+            let order = individualLocations.length;
             for (const key of reorderedKeys) {
               for (const loc of groupedLocations[key]) {
                 updates.push({ id: loc.id, sort_order: order++ });
@@ -565,7 +585,7 @@ export default function ManageLocationsPage() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
                           <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
                             {locs.map(loc => (
-                                <SortableLocationCard
+                              <SortableLocationCard
                                 key={loc.id}
                                 loc={loc}
                                 onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
