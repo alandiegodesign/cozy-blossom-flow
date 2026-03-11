@@ -53,59 +53,56 @@ serve(async (req) => {
 
     // Find or create customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string;
+    let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      });
-      customerId = customer.id;
     }
 
-    // Create invoice items for each cart item
-    for (const item of items) {
-      const description = item.group_size > 1
-        ? `${item.group_size} ingressos por unidade`
-        : undefined;
-
-      await stripe.invoiceItems.create({
-        customer: customerId,
-        unit_amount: Math.round(item.unit_price * 100),
-        quantity: item.quantity,
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
+      price_data: {
         currency: "brl",
-        description: `${item.name} — ${event?.title || "Evento"}${description ? ` (${description})` : ""}`,
-      });
-    }
+        product_data: {
+          name: `${item.name} — ${event?.title || "Evento"}`,
+          description: item.group_size > 1
+            ? `${item.group_size} ingressos por unidade`
+            : undefined,
+        },
+        unit_amount: Math.round(item.unit_price * 100),
+      },
+      quantity: item.quantity,
+    }));
 
-    // Create and finalize the invoice
     const origin = req.headers.get("origin") || "https://cozy-blossom-flow.lovable.app";
 
-    const invoice = await stripe.invoices.create({
+    const metadata: Record<string, string> = {
+      event_id: eventId,
+      user_id: user.id,
+      items_json: JSON.stringify(items.map((i) => ({
+        ticket_location_id: i.ticket_location_id,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+      }))),
+    };
+
+    const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      collection_method: "send_invoice",
-      days_until_due: 1,
-      payment_settings: {
-        payment_method_types: ["card"],
+      customer_email: customerId ? undefined : user.email,
+      line_items: lineItems,
+      mode: "payment",
+      payment_method_types: ["card"],
+      invoice_creation: {
+        enabled: true,
+        invoice_data: {
+          metadata,
+          description: `Ingressos — ${event?.title || "Evento"}`,
+        },
       },
-      metadata: {
-        event_id: eventId,
-        user_id: user.id,
-        items_json: JSON.stringify(items.map((i) => ({
-          ticket_location_id: i.ticket_location_id,
-          quantity: i.quantity,
-          unit_price: i.unit_price,
-        }))),
-      },
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/checkout/${eventId}`,
+      metadata,
     });
 
-    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
-
-    return new Response(JSON.stringify({ 
-      invoiceUrl: finalizedInvoice.hosted_invoice_url,
-      invoiceId: finalizedInvoice.id,
-    }), {
+    return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
