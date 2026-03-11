@@ -310,7 +310,7 @@ function ProducerHome({
             )}
           </div>
         </div>
-        ))
+        ))}
 
       </div>
 
