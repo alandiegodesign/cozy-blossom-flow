@@ -72,14 +72,10 @@ serve(async (req) => {
 
       await stripe.invoiceItems.create({
         customer: customerId,
+        currency: "brl",
+        description: `${item.name} — ${event?.title || "Evento"} (${item.quantity}x)${description ? ` — ${description}` : ""}`,
         quantity: item.quantity,
-        price_data: {
-          currency: "brl",
-          product_data: {
-            name: `${item.name} — ${event?.title || "Evento"}${description ? ` (${description})` : ""}`,
-          },
-          unit_amount: Math.round(item.unit_price * 100),
-        },
+        unit_amount_decimal: String(Math.round(item.unit_price * 100)),
       });
     }
 
