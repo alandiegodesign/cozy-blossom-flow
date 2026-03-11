@@ -83,10 +83,12 @@ export default function AdminDashboardPage() {
         };
       }
       if (row.location_name) {
-        map[row.event_id].locations.push(row);
-        map[row.event_id].totalRevenue += Number(row.revenue);
-        map[row.event_id].totalSold += Number(row.sold_quantity);
         map[row.event_id].totalCapacity += Number(row.total_quantity);
+        if (Number(row.sold_quantity) > 0) {
+          map[row.event_id].locations.push(row);
+          map[row.event_id].totalRevenue += Number(row.revenue);
+          map[row.event_id].totalSold += Number(row.sold_quantity);
+        }
       }
     });
     return Object.values(map);
