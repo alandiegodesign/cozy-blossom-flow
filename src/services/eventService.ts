@@ -10,6 +10,7 @@ export async function getEvents(): Promise<Event[]> {
     .from('events')
     .select('*')
     .is('deleted_at', null)
+    .eq('is_visible', true)
     .order('date', { ascending: true });
   if (error) throw error;
   return data || [];
