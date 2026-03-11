@@ -74,6 +74,15 @@ export default function ManageLocationsPage() {
   const [batchQuantity, setBatchQuantity] = useState('');
   const [batchLoading, setBatchLoading] = useState(false);
 
+  // Edit dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingLoc, setEditingLoc] = useState<any>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editGroupSize, setEditGroupSize] = useState('');
+
   // Copy dialog
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyingEventId, setCopyingEventId] = useState<string | null>(null);
