@@ -64,10 +64,10 @@ export default function HomePage() {
     return { revenue, tickets, events: events.length };
   }, [sales, events]);
 
-  // Split events: upcoming vs past
+  // Split events: upcoming vs past + drafts in "outros"
   const now = new Date().toISOString().slice(0, 10);
-  const upcomingEvents = useMemo(() => filtered.filter(e => e.date >= now), [filtered, now]);
-  const pastEvents = useMemo(() => filtered.filter(e => e.date < now), [filtered, now]);
+  const upcomingEvents = useMemo(() => filtered.filter(e => e.date >= now && e.is_visible !== false), [filtered, now]);
+  const otherEvents = useMemo(() => filtered.filter(e => e.date < now || e.is_visible === false), [filtered, now]);
 
   const handleLogout = async () => {
     await signOut();
@@ -81,7 +81,7 @@ export default function HomePage() {
           profile={profile}
           events={events}
           upcomingEvents={upcomingEvents}
-          pastEvents={pastEvents}
+          pastEvents={otherEvents}
           stats={stats}
           isLoading={isLoading}
           isError={isError}
@@ -293,13 +293,18 @@ function ProducerHome({
                     <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
                       <Ticket className="w-5 h-5 text-muted-foreground" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">{event.title}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })} · {event.time}
-                      </p>
-                    </div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center gap-2">
+                         <p className="font-semibold text-sm truncate">{event.title}</p>
+                         {event.is_visible === false && (
+                           <span className="shrink-0 text-[10px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">Rascunho</span>
+                         )}
+                       </div>
+                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                         <Calendar className="w-3 h-3" />
+                         {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })} · {event.time}
+                       </p>
+                     </div>
                   </button>
                 ))}
               </div>
