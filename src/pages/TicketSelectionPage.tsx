@@ -87,7 +87,7 @@ export default function TicketSelectionPage() {
                 <p className="font-bold text-lg mt-1" style={{ color: loc.color || '#9D4EDD' }}>
                   R$ {Number(loc.price).toFixed(2)}
                 </p>
-                {!isSoldOut && <p className="text-xs text-muted-foreground">{loc.available_quantity} disponíveis</p>}
+                
               </div>
               {!isSoldOut && (
                 <QuantitySelector value={quantities[loc.id] || 0} max={loc.available_quantity} onChange={v => setQty(loc.id, v)} color={loc.color || '#9D4EDD'} />
