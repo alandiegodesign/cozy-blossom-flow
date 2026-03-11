@@ -24,6 +24,7 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const isProdutor = profile?.user_type === 'produtor';
   const clientView = searchParams.get('view') === 'client';
+  const draftsFilter = searchParams.get('filter') === 'drafts';
   const showAsProducer = isProdutor && !clientView;
 
   const { data: events = [], isLoading, isError, refetch } = useQuery({
