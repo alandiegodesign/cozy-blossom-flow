@@ -410,36 +410,67 @@ export default function ManageLocationsPage() {
         <div className="space-y-3">
           <h2 className="font-display font-semibold text-lg">Locais Cadastrados ({locations.length})</h2>
 
-          {Object.entries(groupedLocations).map(([type, locs]) => {
-            const label = LOCATION_TYPES.find(t => t.value === type)?.label || type;
-            return (
-              <Collapsible key={type} defaultOpen={locs.length <= 5}>
-                <CollapsibleTrigger className="w-full bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
-                    <span className="font-display font-semibold text-sm">{label}</span>
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
-                    <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
-                      {locs.map(loc => (
-                        <SortableLocationCard
-                          key={loc.id}
-                          loc={loc}
-                          onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
-                          onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
-                          onDelete={(id) => deleteMutation.mutate(id)}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => {
+            const { active, over } = e;
+            if (!over || active.id === over.id) return;
+            const groupKeys = Object.keys(groupedLocations);
+            const oldIndex = groupKeys.indexOf(active.id as string);
+            const newIndex = groupKeys.indexOf(over.id as string);
+            if (oldIndex === -1 || newIndex === -1) return;
+            const reorderedKeys = arrayMove(groupKeys, oldIndex, newIndex);
+            // Reassign sort_orders for all items based on new group order
+            const updates: { id: string; sort_order: number }[] = [];
+            let order = 0;
+            for (const key of reorderedKeys) {
+              for (const loc of groupedLocations[key]) {
+                updates.push({ id: loc.id, sort_order: order++ });
+              }
+            }
+            queryClient.setQueryData(['locations', eventId], (old: typeof locations) => {
+              if (!old) return old;
+              return [...old].sort((a, b) => {
+                const aOrder = updates.find(u => u.id === a.id)?.sort_order ?? a.sort_order;
+                const bOrder = updates.find(u => u.id === b.id)?.sort_order ?? b.sort_order;
+                return aOrder - bOrder;
+              });
+            });
+            reorderMutation.mutate(updates);
+          }}>
+            <SortableContext items={Object.keys(groupedLocations)} strategy={verticalListSortingStrategy}>
+              {Object.entries(groupedLocations).map(([type, locs]) => {
+                const label = LOCATION_TYPES.find(t => t.value === type)?.label || type;
+                return (
+                  <SortableGroupCard key={type} id={type}>
+                    <Collapsible defaultOpen={locs.length <= 5}>
+                      <CollapsibleTrigger className="w-full bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
+                          <span className="font-display font-semibold text-sm">{label}</span>
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-2 mt-2">
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
+                          <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
+                            {locs.map(loc => (
+                              <SortableLocationCard
+                                key={loc.id}
+                                loc={loc}
+                                onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
+                                onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
+                                onDelete={(id) => deleteMutation.mutate(id)}
+                              />
+                            ))}
+                          </SortableContext>
+                        </DndContext>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SortableGroupCard>
+                );
+              })}
+            </SortableContext>
+          </DndContext>
 
           {locations.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum local cadastrado</p>}
         </div>
