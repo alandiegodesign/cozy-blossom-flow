@@ -536,14 +536,25 @@ export default function ManageLocationsPage() {
                 return (
                   <SortableGroupCard key={type} id={type}>
                     <Collapsible defaultOpen={locs.length <= 5}>
-                      <CollapsibleTrigger className="w-full bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
-                          <span className="font-display font-semibold text-sm">{label}</span>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      </CollapsibleTrigger>
+                      <div className="flex items-center gap-2">
+                        <CollapsibleTrigger className="flex-1 bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
+                            <span className="font-display font-semibold text-sm">{label}</span>
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
+                          </div>
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </CollapsibleTrigger>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleBatchEditOpen(type, locs)}
+                          className="shrink-0 rounded-xl"
+                          title="Editar todos do grupo"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </div>
                       <CollapsibleContent className="space-y-2 mt-2">
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
                           <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
