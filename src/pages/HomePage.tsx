@@ -48,10 +48,14 @@ export default function HomePage() {
     if (!showAsProducer && !isAdmin) {
       list = list.filter(e => e.is_visible !== false);
     }
+    // Drafts filter for producers
+    if (draftsFilter && showAsProducer) {
+      list = list.filter(e => e.is_visible === false);
+    }
     if (!search.trim()) return list;
     const q = search.toLowerCase();
     return list.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
-  }, [events, search, showAsProducer, isAdmin]);
+  }, [events, search, showAsProducer, isAdmin, draftsFilter]);
 
   // Producer stats
   const stats = useMemo(() => {
