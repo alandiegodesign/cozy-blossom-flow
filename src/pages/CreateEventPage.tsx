@@ -129,13 +129,23 @@ export default function CreateEventPage() {
             </button>
             <h1 className="font-display font-bold text-xl text-white">Informações do evento</h1>
           </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-            className="gradient-accent border-0 rounded-full font-display font-bold px-6"
-          >
-            {mutation.isPending ? 'Criando...' : 'Criar evento'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handleSubmit(false)}
+              disabled={mutation.isPending}
+              variant="outline"
+              className="rounded-full font-display font-bold px-5 border-white/30 text-white hover:bg-white/10"
+            >
+              Salvar rascunho
+            </Button>
+            <Button
+              onClick={() => handleSubmit(true)}
+              disabled={mutation.isPending}
+              className="gradient-accent border-0 rounded-full font-display font-bold px-6"
+            >
+              {mutation.isPending ? 'Criando...' : 'Publicar agora'}
+            </Button>
+          </div>
         </div>
       </div>
 
