@@ -83,6 +83,15 @@ export default function ManageLocationsPage() {
   const [editQuantity, setEditQuantity] = useState('');
   const [editGroupSize, setEditGroupSize] = useState('');
 
+  // Batch edit group dialog
+  const [batchEditOpen, setBatchEditOpen] = useState(false);
+  const [batchEditLocs, setBatchEditLocs] = useState<any[]>([]);
+  const [batchEditLabel, setBatchEditLabel] = useState('');
+  const [batchEditPrice, setBatchEditPrice] = useState('');
+  const [batchEditDescription, setBatchEditDescription] = useState('');
+  const [batchEditGroupSize, setBatchEditGroupSize] = useState('');
+  const [batchEditSaving, setBatchEditSaving] = useState(false);
+
   // Copy dialog
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
   const [copyingEventId, setCopyingEventId] = useState<string | null>(null);
