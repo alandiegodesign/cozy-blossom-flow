@@ -93,14 +93,13 @@ export default function CreateEventPage() {
   const mutation = useMutation({
     mutationFn: createEvent,
     onSuccess: (event) => {
-      toast.success('Evento criado com sucesso!');
+      toast.success(event.is_visible ? 'Evento publicado com sucesso!' : 'Rascunho salvo com sucesso!');
       navigate(`/manage-locations/${event.id}`);
     },
     onError: () => toast.error('Erro ao criar evento'),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (publish: boolean) => {
     if (!title || !date || !time) {
       toast.error('Preencha os campos obrigatórios');
       return;
@@ -116,6 +115,7 @@ export default function CreateEventPage() {
       location_address: locationAddress,
       sales_end_time: salesEndTime || null,
       created_by: user!.id,
+      is_visible: publish,
     } as any);
   };
 
