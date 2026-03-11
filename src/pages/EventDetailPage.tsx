@@ -103,7 +103,7 @@ export default function EventDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['event', id] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
-      toast({ title: (event as any)?.is_visible ? 'Evento ocultado!' : 'Evento visível!' });
+      toast({ title: event?.is_visible ? 'Evento ocultado!' : 'Evento visível!' });
     },
     onError: () => toast({ title: 'Erro ao alterar visibilidade', variant: 'destructive' }),
   });

@@ -45,7 +45,7 @@ export default function HomePage() {
     let list = events;
     // Hide invisible events for clients (admins see all)
     if (!showAsProducer && !isAdmin) {
-      list = list.filter(e => (e as any).is_visible !== false);
+      list = list.filter(e => e.is_visible !== false);
     }
     if (!search.trim()) return list;
     const q = search.toLowerCase();
