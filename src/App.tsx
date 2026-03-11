@@ -38,6 +38,7 @@ const MyPagePage = lazyRetry(() => import("./pages/MyPagePage"));
 const PaymentSuccessPage = lazyRetry(() => import("./pages/PaymentSuccessPage"));
 const AdminDashboardPage = lazyRetry(() => import("./pages/AdminDashboardPage"));
 const AdminProducerDetailPage = lazyRetry(() => import("./pages/AdminProducerDetailPage"));
+const AdminValidateTicketsPage = lazyRetry(() => import("./pages/AdminValidateTicketsPage"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
