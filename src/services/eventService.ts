@@ -6,11 +6,13 @@ export type EventInsert = TablesInsert<'events'>;
 export type EventUpdate = TablesUpdate<'events'>;
 
 export async function getEvents(): Promise<Event[]> {
+  const today = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .is('deleted_at', null)
     .eq('is_visible', true)
+    .gte('date', today)
     .order('date', { ascending: true });
   if (error) throw error;
   return data || [];
