@@ -70,20 +70,24 @@ export default function HomePage() {
   };
 
   if (showAsProducer) {
-    return <ProducerHome
-      profile={profile}
-      events={events}
-      upcomingEvents={upcomingEvents}
-      pastEvents={pastEvents}
-      stats={stats}
-      isLoading={isLoading}
-      isError={isError}
-      refetch={refetch}
-      search={search}
-      setSearch={setSearch}
-      filtered={filtered}
-      navigate={navigate}
-    />;
+    return (
+      <ProducerLayout>
+        <ProducerHome
+          profile={profile}
+          events={events}
+          upcomingEvents={upcomingEvents}
+          pastEvents={pastEvents}
+          stats={stats}
+          isLoading={isLoading}
+          isError={isError}
+          refetch={refetch}
+          search={search}
+          setSearch={setSearch}
+          filtered={filtered}
+          navigate={navigate}
+        />
+      </ProducerLayout>
+    );
   }
 
   return (
