@@ -621,6 +621,33 @@ export default function ManageLocationsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Batch Edit Group Dialog */}
+      <Dialog open={batchEditOpen} onOpenChange={setBatchEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Grupo: {batchEditLabel} ({batchEditLocs.length} locais)</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">As alterações serão aplicadas a todos os {batchEditLocs.length} locais deste grupo.</p>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Preço (R$)</label>
+              <Input type="number" value={batchEditPrice} onChange={e => setBatchEditPrice(e.target.value)} className="h-12 rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+              <Textarea value={batchEditDescription} onChange={e => setBatchEditDescription(e.target.value)} className="rounded-xl resize-none" rows={2} />
+            </div>
+            {(batchEditLocs[0]?.location_type === 'camarote_grupo' || batchEditLocs[0]?.location_type === 'bistro') && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Ingressos por grupo</label>
+                <Input type="number" value={batchEditGroupSize} onChange={e => setBatchEditGroupSize(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+            )}
+            <Button onClick={handleBatchEditSave} disabled={batchEditSaving} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+              {batchEditSaving ? 'Salvando...' : `Atualizar ${batchEditLocs.length} locais`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
