@@ -503,12 +503,13 @@ export default function ManageLocationsPage() {
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
                           <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
                             {locs.map(loc => (
-                              <SortableLocationCard
+                                <SortableLocationCard
                                 key={loc.id}
                                 loc={loc}
                                 onToggleActive={(id, isActive) => toggleActiveMutation.mutate({ id, isActive })}
                                 onToggleSoldOut={(id, isSoldOut) => toggleSoldOutMutation.mutate({ id, isSoldOut })}
                                 onDelete={(id) => deleteMutation.mutate(id)}
+                                onEdit={handleEditOpen}
                               />
                             ))}
                           </SortableContext>
