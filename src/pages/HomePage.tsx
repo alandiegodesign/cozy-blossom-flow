@@ -64,10 +64,10 @@ export default function HomePage() {
     return { revenue, tickets, events: events.length };
   }, [sales, events]);
 
-  // Split events: upcoming vs past
+  // Split events: upcoming vs past + drafts in "outros"
   const now = new Date().toISOString().slice(0, 10);
-  const upcomingEvents = useMemo(() => filtered.filter(e => e.date >= now), [filtered, now]);
-  const pastEvents = useMemo(() => filtered.filter(e => e.date < now), [filtered, now]);
+  const upcomingEvents = useMemo(() => filtered.filter(e => e.date >= now && e.is_visible !== false), [filtered, now]);
+  const otherEvents = useMemo(() => filtered.filter(e => e.date < now || e.is_visible === false), [filtered, now]);
 
   const handleLogout = async () => {
     await signOut();
