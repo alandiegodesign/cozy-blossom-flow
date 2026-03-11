@@ -98,12 +98,12 @@ export default function EventDetailPage() {
   });
 
   const toggleVisibilityMutation = useMutation({
-    mutationFn: () => toggleEventVisibility(id!, !(event as any)?.is_visible),
+    mutationFn: () => toggleEventVisibility(id!, !event?.is_visible),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event', id] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
-      toast({ title: (event as any)?.is_visible ? 'Evento ocultado!' : 'Evento visível!' });
+      toast({ title: event?.is_visible ? 'Evento ocultado!' : 'Evento visível!' });
     },
     onError: () => toast({ title: 'Erro ao alterar visibilidade', variant: 'destructive' }),
   });
@@ -117,6 +117,12 @@ export default function EventDetailPage() {
 
   if (loadingEvent) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!event) return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Evento não encontrado</p></div>;
+
+  // Block clients from viewing draft (not visible) events — only the owner can see them
+  const isDraft = event.is_visible === false;
+  if (isDraft && !isOwner) {
+    return <div className="min-h-screen flex items-center justify-center"><p className="text-muted-foreground">Evento não disponível</p></div>;
+  }
 
   return (
     <div className={`min-h-screen ${hasItems ? 'pb-28' : 'pb-8'}`}>
