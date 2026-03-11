@@ -237,8 +237,30 @@ function ProducerHome({
         ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground col-span-full">Carregando eventos...</div>
         ) : (
+        {draftsFilter ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-lg">Rascunhos</h3>
+              <Button size="sm" variant="outline" className="rounded-full text-xs gap-1" onClick={() => navigate('/')}>
+                Ver todos
+              </Button>
+            </div>
+            {filtered.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filtered.map(event => (
+                  <EventCard key={event.id} event={event} showDraftBadge />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-card rounded-2xl border border-border p-8 text-center text-muted-foreground">
+                <FileEdit className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="font-display text-sm">Nenhum rascunho encontrado</p>
+              </div>
+            )}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upcoming Events Carousel */}
+          {/* Upcoming Events */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-lg">Próximos Eventos</h3>
