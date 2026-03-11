@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Plus, Trash2, Copy, Layers, Check, Users, Star, Crown, UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Layers, Check, Users, Star, Crown, UtensilsCrossed, Eye, EyeOff, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
