@@ -93,14 +93,13 @@ export default function CreateEventPage() {
   const mutation = useMutation({
     mutationFn: createEvent,
     onSuccess: (event) => {
-      toast.success('Evento criado com sucesso!');
+      toast.success(event.is_visible ? 'Evento publicado com sucesso!' : 'Rascunho salvo com sucesso!');
       navigate(`/manage-locations/${event.id}`);
     },
     onError: () => toast.error('Erro ao criar evento'),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (publish: boolean) => {
     if (!title || !date || !time) {
       toast.error('Preencha os campos obrigatórios');
       return;
@@ -116,6 +115,7 @@ export default function CreateEventPage() {
       location_address: locationAddress,
       sales_end_time: salesEndTime || null,
       created_by: user!.id,
+      is_visible: publish,
     } as any);
   };
 
@@ -129,13 +129,23 @@ export default function CreateEventPage() {
             </button>
             <h1 className="font-display font-bold text-xl text-white">Informações do evento</h1>
           </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-            className="gradient-accent border-0 rounded-full font-display font-bold px-6"
-          >
-            {mutation.isPending ? 'Criando...' : 'Criar evento'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => handleSubmit(false)}
+              disabled={mutation.isPending}
+              variant="outline"
+              className="rounded-full font-display font-bold px-5 border-white/30 text-white hover:bg-white/10"
+            >
+              Salvar rascunho
+            </Button>
+            <Button
+              onClick={() => handleSubmit(true)}
+              disabled={mutation.isPending}
+              className="gradient-accent border-0 rounded-full font-display font-bold px-6"
+            >
+              {mutation.isPending ? 'Criando...' : 'Publicar agora'}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -360,13 +370,23 @@ export default function CreateEventPage() {
             </section>
 
             {/* Mobile submit */}
-            <Button
-              onClick={handleSubmit}
-              disabled={mutation.isPending}
-              className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary lg:hidden"
-            >
-              {mutation.isPending ? 'Criando...' : 'Criar Evento'}
-            </Button>
+            <div className="flex flex-col gap-3 lg:hidden">
+              <Button
+                onClick={() => handleSubmit(true)}
+                disabled={mutation.isPending}
+                className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
+              >
+                {mutation.isPending ? 'Criando...' : 'Publicar agora'}
+              </Button>
+              <Button
+                onClick={() => handleSubmit(false)}
+                disabled={mutation.isPending}
+                variant="outline"
+                className="w-full h-12 font-display font-bold rounded-xl"
+              >
+                Salvar como rascunho
+              </Button>
+            </div>
           </div>
 
           {/* Right Column - Preview + Tips */}
