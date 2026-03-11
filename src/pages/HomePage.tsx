@@ -237,7 +237,7 @@ function ProducerHome({
         ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground col-span-full">Carregando eventos...</div>
         ) : (
-        {draftsFilter ? (
+        draftsFilter ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-lg">Rascunhos</h3>
@@ -260,7 +260,6 @@ function ProducerHome({
           </div>
         ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upcoming Events */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display font-bold text-lg">Próximos Eventos</h3>
@@ -268,7 +267,6 @@ function ProducerHome({
                 Criar Evento
               </Button>
             </div>
-
             {upcomingEvents.length > 0 ? (
               <div className="space-y-3">
                 {upcomingEvents.map(event => (
@@ -282,8 +280,6 @@ function ProducerHome({
               </div>
             )}
           </div>
-
-          {/* Other Events List */}
           <div className="space-y-4">
             <h3 className="font-display font-bold text-lg">Outros eventos</h3>
             {pastEvents.length > 0 ? (
@@ -314,7 +310,7 @@ function ProducerHome({
             )}
           </div>
         </div>
-        )}
+        ))
 
       </div>
 
