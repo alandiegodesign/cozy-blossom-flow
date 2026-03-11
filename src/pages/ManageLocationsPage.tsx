@@ -18,6 +18,7 @@ import { ChevronDown } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { SortableLocationCard } from '@/components/SortableLocationCard';
+import { SortableGroupCard } from '@/components/SortableGroupCard';
 
 const LOCATION_TYPES = [
   { value: 'pista', label: 'Pista', icon: Users },
