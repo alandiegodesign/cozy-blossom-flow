@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Plus, Trash2, Copy, Layers, Check, Users, Star, Crown, UtensilsCrossed, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Copy, Layers, Check, Users, Star, Crown, UtensilsCrossed, Eye, EyeOff, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -82,6 +82,15 @@ export default function ManageLocationsPage() {
   const [editPrice, setEditPrice] = useState('');
   const [editQuantity, setEditQuantity] = useState('');
   const [editGroupSize, setEditGroupSize] = useState('');
+
+  // Batch edit group dialog
+  const [batchEditOpen, setBatchEditOpen] = useState(false);
+  const [batchEditLocs, setBatchEditLocs] = useState<any[]>([]);
+  const [batchEditLabel, setBatchEditLabel] = useState('');
+  const [batchEditPrice, setBatchEditPrice] = useState('');
+  const [batchEditDescription, setBatchEditDescription] = useState('');
+  const [batchEditGroupSize, setBatchEditGroupSize] = useState('');
+  const [batchEditSaving, setBatchEditSaving] = useState(false);
 
   // Copy dialog
   const [copyDialogOpen, setCopyDialogOpen] = useState(false);
@@ -160,6 +169,42 @@ export default function ManageLocationsPage() {
         group_size: isGroup ? (parseInt(editGroupSize) || 1) : 1,
       },
     });
+  };
+
+  const handleBatchEditOpen = (type: string, locs: any[]) => {
+    const isGroup = type === 'camarote_grupo' || type === 'bistro';
+    const label = LOCATION_TYPES.find(t => t.value === type)?.label || type;
+    setBatchEditLocs(locs);
+    setBatchEditLabel(label);
+    setBatchEditPrice(String(locs[0]?.price ?? ''));
+    setBatchEditDescription(locs[0]?.description ?? '');
+    setBatchEditGroupSize(isGroup ? String(locs[0]?.group_size ?? 1) : '');
+    setBatchEditOpen(true);
+  };
+
+  const handleBatchEditSave = async () => {
+    if (!batchEditPrice) { toast.error('Preencha o preço'); return; }
+    setBatchEditSaving(true);
+    try {
+      const isGroup = batchEditLocs[0]?.location_type === 'camarote_grupo' || batchEditLocs[0]?.location_type === 'bistro';
+      for (const loc of batchEditLocs) {
+        const data: any = {
+          price: parseFloat(batchEditPrice),
+          description: batchEditDescription,
+        };
+        if (isGroup && batchEditGroupSize) {
+          data.group_size = parseInt(batchEditGroupSize) || loc.group_size;
+        }
+        await updateLocation(loc.id, data);
+      }
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      setBatchEditOpen(false);
+      toast.success(`${batchEditLocs.length} locais atualizados!`);
+    } catch {
+      toast.error('Erro ao atualizar em lote');
+    } finally {
+      setBatchEditSaving(false);
+    }
   };
 
   const toggleSoldOutMutation = useMutation({
@@ -491,14 +536,25 @@ export default function ManageLocationsPage() {
                 return (
                   <SortableGroupCard key={type} id={type}>
                     <Collapsible defaultOpen={locs.length <= 5}>
-                      <CollapsibleTrigger className="w-full bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
-                          <span className="font-display font-semibold text-sm">{label}</span>
-                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      </CollapsibleTrigger>
+                      <div className="flex items-center gap-2">
+                        <CollapsibleTrigger className="flex-1 bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getLocationColor(type) }} />
+                            <span className="font-display font-semibold text-sm">{label}</span>
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{locs.length}</span>
+                          </div>
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </CollapsibleTrigger>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleBatchEditOpen(type, locs)}
+                          className="shrink-0 rounded-xl"
+                          title="Editar todos do grupo"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </div>
                       <CollapsibleContent className="space-y-2 mt-2">
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, locs)}>
                           <SortableContext items={locs.map(l => l.id)} strategy={verticalListSortingStrategy}>
@@ -563,6 +619,33 @@ export default function ManageLocationsPage() {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Batch Edit Group Dialog */}
+      <Dialog open={batchEditOpen} onOpenChange={setBatchEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Grupo: {batchEditLabel} ({batchEditLocs.length} locais)</DialogTitle></DialogHeader>
+          <p className="text-xs text-muted-foreground">As alterações serão aplicadas a todos os {batchEditLocs.length} locais deste grupo.</p>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Preço (R$)</label>
+              <Input type="number" value={batchEditPrice} onChange={e => setBatchEditPrice(e.target.value)} className="h-12 rounded-xl" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Descrição</label>
+              <Textarea value={batchEditDescription} onChange={e => setBatchEditDescription(e.target.value)} className="rounded-xl resize-none" rows={2} />
+            </div>
+            {(batchEditLocs[0]?.location_type === 'camarote_grupo' || batchEditLocs[0]?.location_type === 'bistro') && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Ingressos por grupo</label>
+                <Input type="number" value={batchEditGroupSize} onChange={e => setBatchEditGroupSize(e.target.value)} className="h-12 rounded-xl" />
+              </div>
+            )}
+            <Button onClick={handleBatchEditSave} disabled={batchEditSaving} className="w-full h-12 gradient-primary border-0 rounded-xl font-display font-bold">
+              {batchEditSaving ? 'Salvando...' : `Atualizar ${batchEditLocs.length} locais`}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
