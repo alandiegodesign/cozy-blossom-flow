@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import ProducerSidebar from '@/components/ProducerSidebar';
+import ProducerLayout from '@/components/ProducerLayout';
 
 import goodVibesLogo from '@/assets/good-vibes-logo.png';
 
@@ -69,20 +70,24 @@ export default function HomePage() {
   };
 
   if (showAsProducer) {
-    return <ProducerHome
-      profile={profile}
-      events={events}
-      upcomingEvents={upcomingEvents}
-      pastEvents={pastEvents}
-      stats={stats}
-      isLoading={isLoading}
-      isError={isError}
-      refetch={refetch}
-      search={search}
-      setSearch={setSearch}
-      filtered={filtered}
-      navigate={navigate}
-    />;
+    return (
+      <ProducerLayout>
+        <ProducerHome
+          profile={profile}
+          events={events}
+          upcomingEvents={upcomingEvents}
+          pastEvents={pastEvents}
+          stats={stats}
+          isLoading={isLoading}
+          isError={isError}
+          refetch={refetch}
+          search={search}
+          setSearch={setSearch}
+          filtered={filtered}
+          navigate={navigate}
+        />
+      </ProducerLayout>
+    );
   }
 
   return (
@@ -187,7 +192,6 @@ function ProducerHome({
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ProducerSidebar />
-            <div className="w-px h-6 bg-white/30" />
             <h1 className="font-display font-bold text-xl text-white">Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
