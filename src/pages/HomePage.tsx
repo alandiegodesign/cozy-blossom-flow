@@ -174,7 +174,7 @@ export default function HomePage() {
 
 // --- Producer Dashboard Home ---
 function ProducerHome({
-  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate,
+  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate, draftsFilter,
 }: {
   profile: any;
   events: any[];
@@ -188,6 +188,7 @@ function ProducerHome({
   setSearch: (s: string) => void;
   filtered: any[];
   navigate: (path: string) => void;
+  draftsFilter: boolean;
 }) {
   const initials = (profile?.name || 'U').charAt(0).toUpperCase();
 
