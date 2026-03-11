@@ -81,7 +81,8 @@ export default function HomePage() {
           profile={profile}
           events={events}
           upcomingEvents={upcomingEvents}
-          pastEvents={otherEvents}
+          pastEvents={pastEvents}
+          draftEvents={draftEvents}
           stats={stats}
           isLoading={isLoading}
           isError={isError}
