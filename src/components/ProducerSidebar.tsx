@@ -62,7 +62,8 @@ function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
       {/* Menu */}
       <nav className="flex-1 flex flex-col py-2">
         {MENU_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path;
+          const currentPath = location.pathname + location.search;
+          const isActive = item.path.includes('?') ? currentPath === item.path : (location.pathname === item.path && !location.search);
           return (
             <button
               key={item.label}
