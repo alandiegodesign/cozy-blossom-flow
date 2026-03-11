@@ -28,25 +28,31 @@ export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onD
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-card rounded-xl border border-border p-4 flex items-center gap-3 ml-4 ${loc.is_active === false ? 'opacity-50' : ''}`}
+      className={`bg-card rounded-xl border border-border p-3 sm:p-4 ml-2 sm:ml-4 ${loc.is_active === false ? 'opacity-50' : ''}`}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
-      >
-        <GripVertical className="w-5 h-5" />
-      </button>
+      <div className="flex items-start gap-2 sm:gap-3">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none mt-1 shrink-0"
+        >
+          <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
 
-      <div className="flex-1 min-w-0">
-        <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
-        {loc.group_size > 1 && <p className="text-xs text-primary mt-1 ml-1 font-medium">{loc.group_size} ingressos individuais por grupo</p>}
-        {loc.description && <p className="text-xs text-muted-foreground mt-1 ml-1">{loc.description}</p>}
-        {loc.is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Oculto para clientes</p>}
-        {loc.is_sold_out === true && loc.is_active !== false && <p className="text-xs text-amber-500 mt-1 ml-1">Marcado como esgotado</p>}
+        <div className="flex-1 min-w-0">
+          <LocationChip type={loc.location_type as LocationType} name={loc.name} price={loc.price} available={loc.available_quantity} />
+          {loc.group_size > 1 && <p className="text-xs text-primary mt-1 ml-1 font-medium">{loc.group_size} ingressos individuais por grupo</p>}
+          {loc.description && <p className="text-xs text-muted-foreground mt-1 ml-1 truncate">{loc.description}</p>}
+          {loc.is_active === false && <p className="text-xs text-destructive mt-1 ml-1">Oculto para clientes</p>}
+          {loc.is_sold_out === true && loc.is_active !== false && <p className="text-xs text-amber-500 mt-1 ml-1">Marcado como esgotado</p>}
+        </div>
+
+        <Button variant="ghost" size="icon" onClick={() => onDelete(loc.id)} className="text-destructive hover:text-destructive shrink-0 h-8 w-8 sm:hidden">
+          <Trash2 className="w-4 h-4" />
+        </Button>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center justify-end gap-1 mt-2 pt-2 border-t border-border/50">
         <Switch
           checked={loc.is_sold_out !== true}
           onCheckedChange={(checked) => onToggleSoldOut(loc.id, !checked)}
@@ -57,7 +63,7 @@ export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onD
             variant="ghost"
             size="icon"
             onClick={() => onEdit(loc)}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground h-8 w-8"
             title="Editar local"
           >
             <Pencil className="w-4 h-4" />
@@ -67,12 +73,12 @@ export function SortableLocationCard({ loc, onToggleActive, onToggleSoldOut, onD
           variant="ghost"
           size="icon"
           onClick={() => onToggleActive(loc.id, loc.is_active === false)}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-8 w-8"
           title={loc.is_active === false ? 'Mostrar para clientes' : 'Ocultar para clientes'}
         >
           {loc.is_active === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onDelete(loc.id)} className="text-destructive hover:text-destructive">
+        <Button variant="ghost" size="icon" onClick={() => onDelete(loc.id)} className="text-destructive hover:text-destructive h-8 w-8 hidden sm:flex">
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
