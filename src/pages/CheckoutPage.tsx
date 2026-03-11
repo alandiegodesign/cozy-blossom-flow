@@ -6,11 +6,9 @@ import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users, Loader2 } from '
 import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
-import { loadStripe, type Stripe } from '@stripe/stripe-js';
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
@@ -23,33 +21,13 @@ interface CheckoutItem extends CartItem {
   group_size: number;
 }
 
-let cachedStripePromise: Promise<Stripe | null> | null = null;
-
-function getStripeInstance(): Promise<Stripe | null> {
-  if (cachedStripePromise) return cachedStripePromise;
-  cachedStripePromise = supabase.functions.invoke('get-stripe-key').then(({ data }) => {
-    if (data?.publishableKey) {
-      return loadStripe(data.publishableKey);
-    }
-    return null;
-  });
-  return cachedStripePromise;
-}
-
 export default function CheckoutPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { user, profile } = useAuth();
   const state = location.state as { items: CheckoutItem[]; total: number } | null;
-  const [showPayment, setShowPayment] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
-
-  useEffect(() => {
-    setStripePromise(getStripeInstance());
-  }, []);
 
   const { data: event } = useQuery({
     queryKey: ['event', eventId],
@@ -84,11 +62,13 @@ export default function CheckoutPage() {
       });
 
       if (error) throw error;
-      if (data?.clientSecret) {
-        setClientSecret(data.clientSecret);
-        setShowPayment(true);
+      if (data?.invoiceUrl) {
+        // Store invoiceId for verification on return
+        sessionStorage.setItem('pending_invoice_id', data.invoiceId);
+        // Redirect to Stripe hosted invoice page
+        window.location.href = data.invoiceUrl;
       } else {
-        toast.error('Erro ao iniciar pagamento.');
+        toast.error('Erro ao gerar fatura de pagamento.');
       }
     } catch {
       toast.error('Erro ao processar pagamento. Tente novamente.');
@@ -96,29 +76,6 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
-
-  if (showPayment && clientSecret && stripePromise) {
-    return (
-      <div className="min-h-screen pb-8">
-        <div className="gradient-primary px-6 pt-8 pb-12 rounded-b-[2rem]">
-          <div className="max-w-2xl mx-auto">
-            <button onClick={() => setShowPayment(false)} className="flex items-center gap-2 text-white/80 mb-4">
-              <ArrowLeft className="w-5 h-5" /> Voltar ao resumo
-            </button>
-            <h1 className="font-display font-bold text-2xl text-white">Pagamento</h1>
-          </div>
-        </div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6">
-          <div className="bg-card rounded-2xl border border-border overflow-hidden p-1">
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
-              <EmbeddedCheckout className="rounded-xl" />
-            </EmbeddedCheckoutProvider>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pb-8">
@@ -185,7 +142,7 @@ export default function CheckoutPage() {
         <button onClick={handleStartPayment} disabled={loading}
           className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center justify-center gap-2 text-white disabled:opacity-50">
           {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : null}
-          {loading ? 'Preparando pagamento...' : 'Ir para Pagamento'}
+          {loading ? 'Gerando fatura...' : 'Pagar com Cartão'}
         </button>
         <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
           Descartar pedido
