@@ -175,12 +175,13 @@ export default function HomePage() {
 
 // --- Producer Dashboard Home ---
 function ProducerHome({
-  profile, events, upcomingEvents, pastEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate, draftsFilter,
+  profile, events, upcomingEvents, pastEvents, draftEvents, stats, isLoading, isError, refetch, search, setSearch, filtered, navigate, draftsFilter,
 }: {
   profile: any;
   events: any[];
   upcomingEvents: any[];
   pastEvents: any[];
+  draftEvents: any[];
   stats: { revenue: number; tickets: number; events: number };
   isLoading: boolean;
   isError: boolean;
