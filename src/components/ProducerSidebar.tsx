@@ -13,6 +13,7 @@ const MENU_ITEMS = [
   { label: 'Início', icon: Home, path: '/' },
   { label: 'Minha Página', icon: User, path: '/my-page' },
   { label: 'Criar Evento', icon: PlusCircle, path: '/create-event' },
+  { label: 'Rascunhos', icon: FileEdit, path: '/?filter=drafts' },
   { label: 'Ingressos Vendidos', icon: TicketCheck, path: '/sold-tickets' },
   { label: 'Arquivados', icon: Archive, path: '/archived' },
   { label: 'Lixeira', icon: Trash2, path: '/trash' },

@@ -13,8 +13,6 @@ export function EventCard({ event, showDraftBadge }: EventCardProps) {
   const [searchParams] = useSearchParams();
   const clientView = searchParams.get('view') === 'client';
   const isDraft = showDraftBadge && event.is_visible === false;
-  const [searchParams] = useSearchParams();
-  const clientView = searchParams.get('view') === 'client';
 
   return (
     <motion.div

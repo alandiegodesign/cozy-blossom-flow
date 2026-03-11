@@ -243,7 +243,7 @@ function ProducerHome({
             {upcomingEvents.length > 0 ? (
               <div className="space-y-3">
                 {upcomingEvents.map(event => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} showDraftBadge />
                 ))}
               </div>
             ) : (
