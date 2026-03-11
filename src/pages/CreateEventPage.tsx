@@ -370,13 +370,23 @@ export default function CreateEventPage() {
             </section>
 
             {/* Mobile submit */}
-            <Button
-              onClick={handleSubmit}
-              disabled={mutation.isPending}
-              className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary lg:hidden"
-            >
-              {mutation.isPending ? 'Criando...' : 'Criar Evento'}
-            </Button>
+            <div className="flex flex-col gap-3 lg:hidden">
+              <Button
+                onClick={() => handleSubmit(true)}
+                disabled={mutation.isPending}
+                className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary"
+              >
+                {mutation.isPending ? 'Criando...' : 'Publicar agora'}
+              </Button>
+              <Button
+                onClick={() => handleSubmit(false)}
+                disabled={mutation.isPending}
+                variant="outline"
+                className="w-full h-12 font-display font-bold rounded-xl"
+              >
+                Salvar como rascunho
+              </Button>
+            </div>
           </div>
 
           {/* Right Column - Preview + Tips */}
