@@ -10,7 +10,7 @@ import {
 } from '@/services/adminService';
 import {
   Shield, Users, Calendar, DollarSign, Ticket, Search, ChevronRight,
-  Music, Star, Crown, UtensilsCrossed, UsersRound, ArrowLeft,
+  Music, Star, Crown, UtensilsCrossed, UsersRound, ArrowLeft, ScanLine,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -129,6 +129,12 @@ export default function AdminDashboardPage() {
             <h1 className="font-display font-bold text-2xl text-white">Painel ADM</h1>
           </div>
           <p className="text-white/60 text-sm">Monitoramento global de produtores, eventos e faturamento</p>
+          <button
+            onClick={() => navigate('/admin/validate')}
+            className="mt-3 flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+          >
+            <ScanLine className="w-4 h-4" /> Validar Ingressos
+          </button>
         </div>
       </div>
 

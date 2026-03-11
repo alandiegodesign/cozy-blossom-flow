@@ -362,6 +362,21 @@ export type Database = {
           total_amount: number
         }[]
       }
+      admin_lookup_ticket_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          buyer_name: string
+          event_title: string
+          is_already_validated: boolean
+          is_valid: boolean
+          item_quantity: number
+          location_name: string
+          order_id: string
+          producer_name: string
+          validation_code: string
+        }[]
+      }
+      admin_validate_order: { Args: { p_order_id: string }; Returns: boolean }
       decrease_availability: {
         Args: { loc_id: string; qty: number }
         Returns: boolean
