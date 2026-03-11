@@ -192,7 +192,6 @@ function ProducerHome({
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ProducerSidebar />
-            <div className="w-px h-6 bg-white/30" />
             <h1 className="font-display font-bold text-xl text-white">Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
