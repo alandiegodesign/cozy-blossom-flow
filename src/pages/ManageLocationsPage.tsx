@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent, getEventsByCreator } from '@/services/eventService';
-import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, updateLocationSortOrders, getLocationColor, LocationType } from '@/services/ticketLocationService';
+import { getLocationsByEvent, createLocation, deleteLocation, toggleLocationActive, toggleLocationSoldOut, updateLocationSortOrders, updateLocation, getLocationColor, LocationType } from '@/services/ticketLocationService';
 import { LocationChip } from '@/components/LocationChip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
