@@ -98,7 +98,7 @@ export default function EventDetailPage() {
   });
 
   const toggleVisibilityMutation = useMutation({
-    mutationFn: () => toggleEventVisibility(id!, !(event as any)?.is_visible),
+    mutationFn: () => toggleEventVisibility(id!, !event?.is_visible),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event', id] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
