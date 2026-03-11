@@ -171,6 +171,42 @@ export default function ManageLocationsPage() {
     });
   };
 
+  const handleBatchEditOpen = (type: string, locs: any[]) => {
+    const isGroup = type === 'camarote_grupo' || type === 'bistro';
+    const label = LOCATION_TYPES.find(t => t.value === type)?.label || type;
+    setBatchEditLocs(locs);
+    setBatchEditLabel(label);
+    setBatchEditPrice(String(locs[0]?.price ?? ''));
+    setBatchEditDescription(locs[0]?.description ?? '');
+    setBatchEditGroupSize(isGroup ? String(locs[0]?.group_size ?? 1) : '');
+    setBatchEditOpen(true);
+  };
+
+  const handleBatchEditSave = async () => {
+    if (!batchEditPrice) { toast.error('Preencha o preço'); return; }
+    setBatchEditSaving(true);
+    try {
+      const isGroup = batchEditLocs[0]?.location_type === 'camarote_grupo' || batchEditLocs[0]?.location_type === 'bistro';
+      for (const loc of batchEditLocs) {
+        const data: any = {
+          price: parseFloat(batchEditPrice),
+          description: batchEditDescription,
+        };
+        if (isGroup && batchEditGroupSize) {
+          data.group_size = parseInt(batchEditGroupSize) || loc.group_size;
+        }
+        await updateLocation(loc.id, data);
+      }
+      queryClient.invalidateQueries({ queryKey: ['locations', eventId] });
+      setBatchEditOpen(false);
+      toast.success(`${batchEditLocs.length} locais atualizados!`);
+    } catch {
+      toast.error('Erro ao atualizar em lote');
+    } finally {
+      setBatchEditSaving(false);
+    }
+  };
+
   const toggleSoldOutMutation = useMutation({
     mutationFn: ({ id, isSoldOut }: { id: string; isSoldOut: boolean }) => toggleLocationSoldOut(id, isSoldOut),
     onSuccess: () => {
