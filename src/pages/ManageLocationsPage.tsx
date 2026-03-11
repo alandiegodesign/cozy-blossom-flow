@@ -334,12 +334,18 @@ export default function ManageLocationsPage() {
     }
   };
 
-  const groupedLocations = locations.reduce((acc, loc) => {
-    const key = loc.location_type;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(loc);
-    return acc;
-  }, {} as Record<string, typeof locations>);
+  const BATCH_TYPES = ['camarote', 'camarote_grupo', 'bistro'];
+
+  // Separate individual locations (non-batch types) from group locations (batch types)
+  const individualLocations = locations.filter(loc => !BATCH_TYPES.includes(loc.location_type));
+  const groupedLocations = locations
+    .filter(loc => BATCH_TYPES.includes(loc.location_type))
+    .reduce((acc, loc) => {
+      const key = loc.location_type;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(loc);
+      return acc;
+    }, {} as Record<string, typeof locations>);
 
   if (loadingEvent) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!event) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Evento não encontrado</div>;
