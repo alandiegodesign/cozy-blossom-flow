@@ -398,9 +398,11 @@ export default function ManageLocationsPage() {
             </div>
           )}
 
-          <Button onClick={handleAdd} disabled={addMutation.isPending} className="w-full h-12 gradient-accent border-0 rounded-xl font-display font-bold">
-            {addMutation.isPending ? 'Adicionando...' : 'Adicionar Local'}
-          </Button>
+          {!(isBatchType && useBatch) && (
+            <Button onClick={handleAdd} disabled={addMutation.isPending} className="w-full h-12 gradient-accent border-0 rounded-xl font-display font-bold">
+              {addMutation.isPending ? 'Adicionando...' : 'Adicionar Local'}
+            </Button>
+          )}
         </div>
 
         {/* Locations grouped by type */}
