@@ -147,7 +147,7 @@ export default function HomePage() {
         ) : isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Carregando eventos...</div>
         ) : (
-          <motion.div className="grid gap-4" initial="hidden" animate="visible"
+          <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" initial="hidden" animate="visible"
             variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
             {filtered.map(event => (
               <motion.div key={event.id} variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
