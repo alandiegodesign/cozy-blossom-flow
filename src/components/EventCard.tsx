@@ -1,10 +1,11 @@
 import { Event } from '@/services/eventService';
 import { motion } from 'framer-motion';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, EyeOff } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 interface EventCardProps {
   event: Event;
+  showDraftBadge?: boolean;
 }
 
 export function EventCard({ event }: EventCardProps) {
