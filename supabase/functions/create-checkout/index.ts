@@ -51,50 +51,61 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
+    // Find or create customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string | undefined;
+    let customerId: string;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+    } else {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
     }
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
-      price_data: {
-        currency: "brl",
-        product_data: {
-          name: `${item.name} — ${event?.title || "Evento"}`,
-          description: item.group_size > 1
-            ? `${item.group_size} ingressos por unidade`
-            : undefined,
-        },
-        unit_amount: Math.round(item.unit_price * 100),
-      },
-      quantity: item.quantity,
-    }));
+    // Create invoice items for each cart item
+    for (const item of items) {
+      const description = item.group_size > 1
+        ? `${item.group_size} ingressos por unidade`
+        : undefined;
 
+      await stripe.invoiceItems.create({
+        customer: customerId,
+        unit_amount: Math.round(item.unit_price * 100),
+        quantity: item.quantity,
+        currency: "brl",
+        description: `${item.name} — ${event?.title || "Evento"}${description ? ` (${description})` : ""}`,
+      });
+    }
+
+    // Create and finalize the invoice
     const origin = req.headers.get("origin") || "https://cozy-blossom-flow.lovable.app";
 
-    const metadata: Record<string, string> = {
-      event_id: eventId,
-      user_id: user.id,
-      items_json: JSON.stringify(items.map((i) => ({
-        ticket_location_id: i.ticket_location_id,
-        quantity: i.quantity,
-        unit_price: i.unit_price,
-      }))),
-    };
-
-    const session = await stripe.checkout.sessions.create({
+    const invoice = await stripe.invoices.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: lineItems,
-      mode: "payment",
-      payment_method_types: ["card"],
-      ui_mode: "embedded",
-      return_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      metadata,
+      collection_method: "send_invoice",
+      days_until_due: 1,
+      payment_settings: {
+        payment_method_types: ["card"],
+      },
+      metadata: {
+        event_id: eventId,
+        user_id: user.id,
+        items_json: JSON.stringify(items.map((i) => ({
+          ticket_location_id: i.ticket_location_id,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+        }))),
+      },
     });
 
-    return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
+    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+
+    return new Response(JSON.stringify({ 
+      invoiceUrl: finalizedInvoice.hosted_invoice_url,
+      invoiceId: finalizedInvoice.id,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

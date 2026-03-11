@@ -24,40 +24,38 @@ serve(async (req) => {
   );
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data: authData } = await supabaseClient.auth.getUser(token);
     const user = authData.user;
     if (!user) throw new Error("Usuário não autenticado");
 
-    const { sessionId } = await req.json();
-    if (!sessionId) throw new Error("Session ID obrigatório");
+    const { invoiceId } = await req.json();
+    if (!invoiceId) throw new Error("Invoice ID obrigatório");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const invoice = await stripe.invoices.retrieve(invoiceId);
 
-    if (session.payment_status !== "paid") {
-      return new Response(JSON.stringify({ success: false, status: session.payment_status }), {
+    if (invoice.status !== "paid") {
+      return new Response(JSON.stringify({ success: false, status: invoice.status }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const metadata = session.metadata!;
+    const metadata = invoice.metadata!;
     const eventId = metadata.event_id;
     const userId = metadata.user_id;
 
-    // Verify this user owns this session
-    if (userId !== user.id) throw new Error("Sessão não pertence ao usuário");
+    if (userId !== user.id) throw new Error("Fatura não pertence ao usuário");
 
-    // Check if order already created for this session
+    // Check if order already created for this invoice
     const { data: existingOrder } = await supabaseAdmin
       .from("orders")
       .select("id")
-      .eq("stripe_session_id", sessionId)
+      .eq("stripe_session_id", invoiceId)
       .maybeSingle();
 
     if (existingOrder) {
@@ -87,7 +85,6 @@ serve(async (req) => {
 
     const totalAmount = items.reduce((s, i) => s + i.quantity * i.unit_price, 0);
 
-    // Create order
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -95,7 +92,7 @@ serve(async (req) => {
         user_id: userId,
         total_amount: totalAmount,
         status: "confirmed",
-        stripe_session_id: sessionId,
+        stripe_session_id: invoiceId,
       })
       .select()
       .single();
