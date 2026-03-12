@@ -137,13 +137,22 @@ export default function EventDetailPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         {isOwner && (
-          <div className="absolute top-4 right-4 flex gap-2">
-            <button onClick={() => toggleVisibilityMutation.mutate()} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
-              {(event as any)?.is_visible !== false ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-            <button onClick={() => navigate(`/manage-locations/${event.id}`)} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
-              <Settings className="w-5 h-5" />
-            </button>
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur rounded-full pl-3 pr-1 py-1">
+              <Link2 className="w-3.5 h-3.5 text-white/70 shrink-0" />
+              <span className="text-[10px] text-white/70 truncate max-w-[140px]">{shareLink}</span>
+              <button onClick={(e) => { e.stopPropagation(); copyLink(); }} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => toggleVisibilityMutation.mutate()} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
+                {(event as any)?.is_visible !== false ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+              <button onClick={() => navigate(`/manage-locations/${event.id}`)} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white">
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -400,18 +409,6 @@ export default function EventDetailPage() {
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-xs font-semibold text-primary">
                   <DollarSign className="w-3.5 h-3.5" /> Faturamento: R$ {eventStats.revenue.toFixed(2)}
                 </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold">Link de compartilhamento</p>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 bg-muted rounded-lg px-3 py-2 overflow-hidden">
-                  <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-xs text-muted-foreground truncate">{shareLink}</span>
-                </div>
-                <Button size="sm" variant="outline" onClick={copyLink} className="shrink-0 border-primary text-primary hover:bg-primary/10">
-                  <Copy className="w-4 h-4 mr-1" /> Copiar link
-                </Button>
               </div>
             </div>
           </div>
