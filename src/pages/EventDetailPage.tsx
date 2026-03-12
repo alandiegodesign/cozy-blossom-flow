@@ -410,19 +410,6 @@ export default function EventDetailPage() {
                   <DollarSign className="w-3.5 h-3.5" /> Faturamento: R$ {eventStats.revenue.toFixed(2)}
                 </span>
               </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-semibold">Link de compartilhamento</p>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 flex-1 bg-muted rounded-lg px-3 py-2 overflow-hidden">
-                  <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
-                  <span className="text-xs text-muted-foreground truncate">{shareLink}</span>
-                </div>
-                <Button size="sm" variant="outline" onClick={copyLink} className="shrink-0 border-primary text-primary hover:bg-primary/10">
-                  <Copy className="w-4 h-4 mr-1" /> Copiar link
-                </Button>
-              </div>
-            </div>
           </div>
         )}
 
