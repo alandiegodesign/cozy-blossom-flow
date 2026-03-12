@@ -93,7 +93,7 @@ export default function SignupPage() {
       >
         {/* Logo & Title */}
         <div className="mb-8 flex flex-col items-center">
-          <img src={goodVibesLogo} alt="Good Vibes" className="h-24 w-auto mb-3" />
+          <img src={goodVibesLogo} alt="Good Vibes" className="h-16 w-auto mb-3" />
           <h1 className="font-display font-bold text-2xl text-foreground">Criar Conta</h1>
           <p className="text-muted-foreground text-sm mt-1">Junte-se à comunidade Good Vibes</p>
         </div>

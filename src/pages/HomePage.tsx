@@ -103,7 +103,7 @@ export default function HomePage() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <img src={goodVibesLogo} alt="Good Vibes" className="h-32 w-auto" />
+              <img src={goodVibesLogo} alt="Good Vibes" className="h-16 w-auto" />
             </div>
             <div className="flex items-center gap-2">
               {isAdmin && (
