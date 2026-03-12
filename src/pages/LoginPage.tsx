@@ -192,7 +192,8 @@ export default function LoginPage() {
             Cadastre-se
           </Link>
         </p>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
