@@ -120,6 +120,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <PWAInstallPrompt />
+          <PWAUpdatePrompt />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
