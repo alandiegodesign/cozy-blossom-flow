@@ -88,9 +88,9 @@ export default function LoginPage() {
         {/* Logo & Welcome */}
         <div className="mb-8 flex flex-col items-center">
           <img src={goodVibesLogo} alt="Good Vibes" className="h-24 w-auto mb-3" />
-          {userType === 'produtor' ? (
-            <h1 className="font-display font-bold text-xl text-foreground mb-1">Área do Produtor</h1>
-          ) : null}
+          <h1 className="font-display font-bold text-xl text-foreground mb-1">
+            {userType === 'produtor' ? 'Área do Produtor' : 'Área do Cliente'}
+          </h1>
           <p className="text-muted-foreground text-sm">Bem-vindo de volta!</p>
         </div>
 
