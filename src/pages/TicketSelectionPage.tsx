@@ -9,7 +9,7 @@ import { ArrowLeft, Music, Star, Crown, UtensilsCrossed, Users } from 'lucide-re
 import { motion } from 'framer-motion';
 
 const ICONS: Record<LocationType, React.ElementType> = {
-  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
+  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed, sofa: Crown,
 };
 
 export default function TicketSelectionPage() {
