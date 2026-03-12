@@ -151,7 +151,7 @@ export default function LoginPage() {
               placeholder="Senha"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="pl-12 pr-12 h-14 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+              className="pl-12 pr-12 h-12 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
