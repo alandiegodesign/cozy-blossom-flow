@@ -5,7 +5,7 @@ export type TicketLocation = Tables<'ticket_locations'>;
 export type TicketLocationInsert = TablesInsert<'ticket_locations'>;
 export type TicketLocationUpdate = TablesUpdate<'ticket_locations'>;
 
-export type LocationType = 'pista' | 'vip' | 'camarote' | 'camarote_grupo' | 'bistro';
+export type LocationType = 'pista' | 'vip' | 'camarote' | 'camarote_grupo' | 'bistro' | 'sofa';
 
 const LOCATION_COLORS: Record<string, string> = {
   pista: '#9D4EDD',
@@ -13,6 +13,7 @@ const LOCATION_COLORS: Record<string, string> = {
   camarote: '#FF6D00',
   camarote_grupo: '#7209B7',
   bistro: '#00B4D8',
+  sofa: '#E85D04',
 };
 
 export function getLocationColor(type: string): string {

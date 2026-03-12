@@ -335,7 +335,7 @@ export default function ManageLocationsPage() {
     }
   };
 
-  const BATCH_TYPES = ['camarote', 'camarote_grupo', 'bistro'];
+  const BATCH_TYPES = ['camarote', 'camarote_grupo', 'bistro', 'sofa'];
 
   // Separate individual locations (non-batch types) from group locations (batch types)
   const individualLocations = locations.filter(loc => !BATCH_TYPES.includes(loc.location_type));
