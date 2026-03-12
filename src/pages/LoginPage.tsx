@@ -79,38 +79,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: 'var(--gradient-bg)' }}>
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md flex flex-col items-center"
-      >
-        {/* Logo & Welcome */}
-        <div className="mb-8 flex flex-col items-center">
-          <img src={goodVibesLogo} alt="Good Vibes" className="h-24 w-auto mb-3" />
-          {userType === 'produtor' ? (
-            <h1 className="font-display font-bold text-xl text-foreground mb-1">Área do Produtor</h1>
-          ) : null}
-          <p className="text-muted-foreground text-sm">Bem-vindo de volta!</p>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--gradient-bg)' }}>
+      {/* Fixed top bar */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 h-14">
+          <img src={goodVibesLogo} alt="Good Vibes" className="h-8 w-auto" />
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setUserType(userType === 'produtor' ? 'cliente' : 'produtor')}
+              className={`text-sm font-semibold transition-colors ${
+                userType === 'produtor' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Sou produtor
+            </button>
+            <span className="text-xs text-muted-foreground border border-border rounded-full px-3 py-1.5 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              Login
+            </span>
+          </div>
         </div>
+      </header>
 
-        {/* User type toggle */}
-        <div className="w-full bg-card rounded-2xl border border-border p-1.5 flex mb-6">
-          <button type="button" onClick={() => setUserType('cliente')}
-            className={`flex-1 flex flex-col items-center gap-1 py-3.5 rounded-xl transition-all font-display font-semibold text-sm ${
-              userType === 'cliente' ? 'gradient-primary text-white shadow-lg glow-primary' : 'text-muted-foreground hover:text-foreground'
-            }`}>
-            <User className="w-5 h-5" />
-            Cliente
-          </button>
-          <button type="button" onClick={() => setUserType('produtor')}
-            className={`flex-1 flex flex-col items-center gap-1 py-3.5 rounded-xl transition-all font-display font-semibold text-sm ${
-              userType === 'produtor' ? 'gradient-primary text-white shadow-lg glow-primary' : 'text-muted-foreground hover:text-foreground'
-            }`}>
-            <Briefcase className="w-5 h-5" />
-            Sou Produtor
-          </button>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md flex flex-col items-center"
+        >
+          {/* Welcome */}
+          <div className="mb-8 flex flex-col items-center">
+            {userType === 'produtor' ? (
+              <h1 className="font-display font-bold text-xl text-foreground mb-1">Área do Produtor</h1>
+            ) : null}
+            <p className="text-muted-foreground text-sm">Bem-vindo de volta!</p>
+          </div>
 
         <form onSubmit={handleLogin} className="w-full bg-card rounded-2xl border border-border p-6 space-y-4">
           {/* Login method toggle */}
@@ -188,7 +192,8 @@ export default function LoginPage() {
             Cadastre-se
           </Link>
         </p>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
