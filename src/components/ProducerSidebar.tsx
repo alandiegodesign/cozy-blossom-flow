@@ -42,9 +42,13 @@ function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
     <div className="flex flex-col h-full">
       {/* Profile header */}
       <div className="gradient-primary px-4 pt-6 pb-4 flex flex-col items-center shrink-0">
-        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold text-white mb-2 border-2 border-white/40">
-          {initials}
-        </div>
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt={profile.name} className="w-12 h-12 rounded-full object-cover mb-2 border-2 border-white/40" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold text-white mb-2 border-2 border-white/40">
+            {initials}
+          </div>
+        )}
         <p className="font-display font-bold text-white text-sm">{profile?.name || 'Usuário'}</p>
         <span className="mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white uppercase tracking-wider">
           Produtor
