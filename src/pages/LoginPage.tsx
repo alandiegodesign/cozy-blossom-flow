@@ -112,7 +112,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <form onSubmit={handleLogin} className="w-full bg-card rounded-2xl border border-border p-6 space-y-4">
+        <form onSubmit={handleLogin} className="w-full bg-card rounded-2xl border border-border p-5 space-y-3">
           {/* Login method toggle */}
           <div className="flex gap-2 mb-2">
             <button type="button" onClick={() => { setLoginMethod('email'); setCredential(''); }}
