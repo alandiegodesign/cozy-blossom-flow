@@ -140,7 +140,7 @@ export default function LoginPage() {
               placeholder={loginMethod === 'email' ? 'Email' : 'CPF (000.000.000-00)'}
               value={credential}
               onChange={e => setCredential(loginMethod === 'cpf' ? formatCpf(e.target.value) : e.target.value)}
-              className="pl-12 h-14 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
+              className="pl-12 h-12 bg-background border-border rounded-xl text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
             />
           </div>
 
