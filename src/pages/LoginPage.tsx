@@ -182,7 +182,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="mt-8 text-muted-foreground text-sm">
+        <p className="mt-4 text-muted-foreground text-sm">
           Não tem uma conta?{' '}
           <Link to="/signup" className="text-gradient font-semibold underline hover:no-underline">
             Cadastre-se
