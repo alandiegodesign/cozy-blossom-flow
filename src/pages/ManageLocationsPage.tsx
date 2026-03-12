@@ -26,6 +26,7 @@ const LOCATION_TYPES = [
   { value: 'camarote', label: 'Camarote individual', icon: Crown },
   { value: 'camarote_grupo', label: 'Camarote em grupo', icon: Users },
   { value: 'bistro', label: 'Bistrô', icon: UtensilsCrossed },
+  { value: 'sofa', label: 'Sofá', icon: Crown },
 ] as const;
 
 type ExtendedLocationType = typeof LOCATION_TYPES[number]['value'];
