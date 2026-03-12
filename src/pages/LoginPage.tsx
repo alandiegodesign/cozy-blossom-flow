@@ -79,19 +79,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: 'var(--gradient-bg)' }}>
+    <div className="h-screen flex flex-col items-center justify-center px-6 py-4 overflow-hidden" style={{ background: 'var(--gradient-bg)' }}>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md flex flex-col items-center"
       >
         {/* Logo & Welcome */}
-        <div className="mb-8 flex flex-col items-center">
-          <img src={goodVibesLogo} alt="Good Vibes" className="h-24 w-auto mb-3" />
-          <h1 className="font-display font-bold text-xl text-foreground mb-1">
+        <div className="mb-4 flex flex-col items-center">
+          <img src={goodVibesLogo} alt="Good Vibes" className="h-16 w-auto mb-1" />
+          <h1 className="font-display font-bold text-lg text-foreground mb-0.5">
             {userType === 'produtor' ? 'Área do Produtor' : 'Área do Cliente'}
           </h1>
-          <p className="text-muted-foreground text-sm">Bem-vindo de volta!</p>
+          <p className="text-muted-foreground text-xs">Bem-vindo de volta!</p>
         </div>
 
         {/* User type toggle */}
