@@ -410,6 +410,8 @@ export default function EventDetailPage() {
                   <DollarSign className="w-3.5 h-3.5" /> Faturamento: R$ {eventStats.revenue.toFixed(2)}
                 </span>
               </div>
+              </div>
+            </div>
           </div>
         )}
 
