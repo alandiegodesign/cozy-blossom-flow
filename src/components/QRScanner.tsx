@@ -66,11 +66,13 @@ export default function QRScanner({ onScan, onError }: QRScannerProps) {
         let cameraConfig: any;
         try {
           const cameras = await Html5Qrcode.getCameras();
+          console.log('QR Scanner: cameras found:', cameras.length, cameras.map(c => c.label));
           const backCamera = cameras.find((c) => /back|rear|environment/i.test(c.label));
           cameraConfig = backCamera
             ? { deviceId: { exact: backCamera.id } }
             : { facingMode: 'environment' };
-        } catch {
+        } catch (camErr) {
+          console.warn('QR Scanner: getCameras failed, using fallback:', camErr);
           cameraConfig = { facingMode: 'environment' };
         }
 
