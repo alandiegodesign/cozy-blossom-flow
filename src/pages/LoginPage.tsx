@@ -83,7 +83,7 @@ export default function LoginPage() {
       {/* Fixed top bar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-md">
         <div className="max-w-5xl mx-auto flex items-center justify-between px-4 h-14">
-          <img src={goodVibesLogo} alt="Good Vibes" className="h-8 w-auto" />
+          <img src={goodVibesLogo} alt="Good Vibes" className="h-12 w-auto" />
           <div className="flex items-center gap-3">
             <button
               type="button"
