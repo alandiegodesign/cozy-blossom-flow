@@ -235,9 +235,17 @@ export default function EventDetailPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="font-display font-semibold text-lg">Locais Cadastrados</h2>
-                <Button variant="outline" size="sm" onClick={() => navigate(`/manage-locations/${event.id}`)} className="border-accent text-accent hover:bg-accent/10">
-                  <Settings className="w-4 h-4 mr-1.5" /> Editar Locais
-                </Button>
+                <div className="flex gap-2">
+                  {isDraft && (
+                    <Button size="sm" onClick={() => toggleVisibilityMutation.mutate()} disabled={toggleVisibilityMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5">
+                      <Send className="w-4 h-4" />
+                      {toggleVisibilityMutation.isPending ? 'Publicando...' : 'Publicar'}
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/manage-locations/${event.id}`)} className="border-accent text-accent hover:bg-accent/10">
+                    <Settings className="w-4 h-4 mr-1.5" /> Editar Locais
+                  </Button>
+                </div>
               </div>
               {regularLocs.map(renderOwnerCard)}
               {Object.entries(grouped).map(([type, locs]) => {
