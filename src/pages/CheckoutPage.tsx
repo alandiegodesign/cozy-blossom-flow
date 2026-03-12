@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CartItem } from '@/services/orderService';
 
 const ICONS: Record<LocationType, React.ElementType> = {
-  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed,
+  pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed, sofa: Crown,
 };
 
 interface CheckoutItem extends CartItem {

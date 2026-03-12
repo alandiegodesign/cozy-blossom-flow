@@ -44,7 +44,7 @@ export default function EventDetailPage() {
   const toggleGroup = (type: string) => setOpenGroups(prev => ({ ...prev, [type]: !prev[type] }));
 
   const ICONS: Record<LocationType, React.ElementType> = {
-    pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: Wine,
+    pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: Wine, sofa: Crown,
   };
 
   const cartTotal = useMemo(() => {
