@@ -26,6 +26,7 @@ const LOCATION_TYPES = [
   { value: 'camarote', label: 'Camarote individual', icon: Crown },
   { value: 'camarote_grupo', label: 'Camarote em grupo', icon: Users },
   { value: 'bistro', label: 'Bistrô', icon: UtensilsCrossed },
+  { value: 'sofa', label: 'Sofá', icon: Crown },
 ] as const;
 
 type ExtendedLocationType = typeof LOCATION_TYPES[number]['value'];
@@ -334,7 +335,7 @@ export default function ManageLocationsPage() {
     }
   };
 
-  const BATCH_TYPES = ['camarote', 'camarote_grupo', 'bistro'];
+  const BATCH_TYPES = ['camarote', 'camarote_grupo', 'bistro', 'sofa'];
 
   // Separate individual locations (non-batch types) from group locations (batch types)
   const individualLocations = locations.filter(loc => !BATCH_TYPES.includes(loc.location_type));

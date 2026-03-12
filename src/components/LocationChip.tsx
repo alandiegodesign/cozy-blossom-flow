@@ -15,6 +15,7 @@ const ICONS: Record<LocationType, React.ElementType> = {
   camarote: Crown,
   camarote_grupo: Users,
   bistro: UtensilsCrossed,
+  sofa: Crown,
 };
 
 export function LocationChip({ type, name, price, available, className = '' }: LocationChipProps) {
