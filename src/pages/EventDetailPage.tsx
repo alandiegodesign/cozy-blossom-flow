@@ -239,7 +239,7 @@ export default function EventDetailPage() {
                   {isDraft && (
                     <Button size="sm" onClick={() => toggleVisibilityMutation.mutate()} disabled={toggleVisibilityMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5">
                       <Send className="w-4 h-4" />
-                      {toggleVisibilityMutation.isPending ? 'Publicando...' : 'Publicar'}
+                      {toggleVisibilityMutation.isPending ? 'Publicando...' : 'Publicar Evento'}
                     </Button>
                   )}
                   <Button variant="outline" size="sm" onClick={() => navigate(`/manage-locations/${event.id}`)} className="border-accent text-accent hover:bg-accent/10">
