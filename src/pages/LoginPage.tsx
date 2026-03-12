@@ -110,9 +110,9 @@ export default function LoginPage() {
         >
           {/* Welcome */}
           <div className="mb-8 flex flex-col items-center">
-            {userType === 'produtor' ? (
-              <h1 className="font-display font-bold text-xl text-foreground mb-1">Área do Produtor</h1>
-            ) : null}
+            <h1 className="font-display font-bold text-xl text-foreground mb-1">
+              {userType === 'produtor' ? 'Área do Produtor' : 'Área do Cliente'}
+            </h1>
             <p className="text-muted-foreground text-sm">Bem-vindo de volta!</p>
           </div>
 
