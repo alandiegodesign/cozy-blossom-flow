@@ -95,7 +95,7 @@ export default function LoginPage() {
         </div>
 
         {/* User type toggle */}
-        <div className="w-full bg-card rounded-2xl border border-border p-1.5 flex mb-6">
+        <div className="w-full bg-card rounded-2xl border border-border p-1.5 flex mb-4">
           <button type="button" onClick={() => setUserType('cliente')}
             className={`flex-1 flex flex-col items-center gap-1 py-3.5 rounded-xl transition-all font-display font-semibold text-sm ${
               userType === 'cliente' ? 'gradient-primary text-white shadow-lg glow-primary' : 'text-muted-foreground hover:text-foreground'
