@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProducerLayout from "@/components/ProducerLayout";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import PWAUpdatePrompt from "@/components/PWAUpdatePrompt";
 
 function lazyRetry(fn: () => Promise<{ default: ComponentType<any> }>) {
   return lazy(() => fn().catch(() => {
@@ -118,6 +120,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <PWAInstallPrompt />
+          <PWAUpdatePrompt />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
