@@ -53,7 +53,7 @@ function classifyTable(t: TableRaw): { label: string; color: string; reason: str
 }
 
 // Import edge function sources at build time
-const edgeFunctionModules = import.meta.glob('/supabase/functions/*/index.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const edgeFunctionModules = import.meta.glob('../../supabase/functions/*/index.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 export default function AdminCredentialsPage() {
   const { session } = useAuth();
