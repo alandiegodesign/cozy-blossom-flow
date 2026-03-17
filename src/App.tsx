@@ -41,6 +41,7 @@ const PaymentSuccessPage = lazyRetry(() => import("./pages/PaymentSuccessPage"))
 const AdminDashboardPage = lazyRetry(() => import("./pages/AdminDashboardPage"));
 const AdminProducerDetailPage = lazyRetry(() => import("./pages/AdminProducerDetailPage"));
 const AdminValidateTicketsPage = lazyRetry(() => import("./pages/AdminValidateTicketsPage"));
+const AdminCredentialsPage = lazyRetry(() => import("./pages/AdminCredentialsPage"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -107,6 +108,7 @@ const AppRoutes = () => (
       <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
       <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
       <Route path="/admin/validate" element={<AdminRoute><AdminValidateTicketsPage /></AdminRoute>} />
+      <Route path="/admin-credentials" element={<ProtectedRoute><AdminCredentialsPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Suspense>
