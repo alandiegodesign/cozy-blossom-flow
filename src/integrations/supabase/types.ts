@@ -381,6 +381,7 @@ export type Database = {
         Args: { loc_id: string; qty: number }
         Returns: boolean
       }
+      exec_sql: { Args: { sql_query: string }; Returns: Json }
       find_user_by_email_or_cpf: {
         Args: { p_identifier: string }
         Returns: {
