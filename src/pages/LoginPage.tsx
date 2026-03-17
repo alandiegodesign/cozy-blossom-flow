@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { User, Briefcase, Eye, EyeOff, Lock, Mail, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
-import goodVibesLogo from '@/assets/good-vibes-logo.png';
+const goodVibesLogo = '/good-vibes-logo.png';
 
 function formatCpf(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
