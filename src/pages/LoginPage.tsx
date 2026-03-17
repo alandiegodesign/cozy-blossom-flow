@@ -87,7 +87,7 @@ export default function LoginPage() {
       >
         {/* Logo & Welcome */}
         <div className="mb-4 flex flex-col items-center">
-          <img src={goodVibesLogo} alt="Good Vibes" className="h-16 w-auto mb-1" />
+          <img src={goodVibesLogo} alt="Good Vibes" className="h-16 w-auto mb-1" width={94} height={64} fetchPriority="high" />
           <h1 className="font-display font-bold text-lg text-foreground mb-0.5">
             {userType === 'produtor' ? 'Área do Produtor' : 'Área do Cliente'}
           </h1>
