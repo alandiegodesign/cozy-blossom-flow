@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { MOCK_USERS, ADMIN_USER_IDS } from '@/mock/data';
 
 interface Profile {
   id: string;
@@ -13,114 +12,103 @@ interface Profile {
   avatar_url: string | null;
 }
 
+interface MockUser {
+  id: string;
+  email: string;
+}
+
+interface MockSession {
+  user: MockUser;
+  access_token: string;
+}
+
 interface AuthContextType {
-  session: Session | null;
-  user: User | null;
+  session: MockSession | null;
+  user: MockUser | null;
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
   signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, meta: { name: string; user_type: string; phone?: string; cpf?: string }) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   profile: null,
-  loading: true,
+  loading: false,
   isAdmin: false,
   signOut: async () => {},
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Restore from localStorage
+  const storedUserId = localStorage.getItem('mock_user_id');
+  const storedUser = storedUserId ? MOCK_USERS[storedUserId] : null;
 
-  console.log('[AuthProvider] render, loading:', loading, 'session:', !!session);
+  const [userId, setUserId] = useState<string | null>(storedUserId);
+  const [profile, setProfile] = useState<Profile | null>(storedUser?.profile as Profile || null);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    if (data) {
-      setProfile(data as unknown as Profile);
-    }
-    // Check admin role
-    const { data: hasRole } = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
-    setIsAdmin(!!hasRole);
+  const user: MockUser | null = userId && MOCK_USERS[userId]
+    ? { id: userId, email: MOCK_USERS[userId].email }
+    : null;
+
+  const session: MockSession | null = user
+    ? { user, access_token: 'mock-token' }
+    : null;
+
+  const isAdmin = userId ? ADMIN_USER_IDS.includes(userId) : false;
+
+  const signIn = async (email: string, password: string) => {
+    const entry = Object.entries(MOCK_USERS).find(
+      ([, u]) => u.email === email && u.password === password
+    );
+    if (!entry) return { error: 'Email ou senha incorretos' };
+    const [id, userData] = entry;
+    localStorage.setItem('mock_user_id', id);
+    setUserId(id);
+    setProfile(userData.profile as Profile);
+    return { error: null };
   };
 
-  useEffect(() => {
-    // Safety timeout: never stay loading forever
-    const timeout = setTimeout(() => {
-      setLoading(prev => {
-        if (prev) console.warn('[AuthProvider] Loading timeout - forcing ready');
-        return false;
-      });
-    }, 5000);
+  const signUp = async (email: string, password: string, meta: { name: string; user_type: string; phone?: string; cpf?: string }) => {
+    // Check if email already exists
+    const exists = Object.values(MOCK_USERS).find(u => u.email === email);
+    if (exists) return { error: 'Email já cadastrado' };
 
-    let mounted = true;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        console.log('[AuthProvider] onAuthStateChange', _event, !!session);
-        setSession(session);
-        if (session?.user) {
-          // Defer profile fetch to avoid Supabase deadlock
-          setTimeout(() => {
-            if (!mounted) return;
-            fetchProfile(session.user.id).catch(e => {
-              console.error('Error fetching profile:', e);
-            }).finally(() => {
-              if (mounted) setLoading(false);
-            });
-          }, 0);
-        } else {
-          setProfile(null);
-          setIsAdmin(false);
-          setLoading(false);
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthProvider] getSession result', !!session);
-      if (!mounted) return;
-      setSession(session);
-      if (session?.user) {
-        fetchProfile(session.user.id).catch(e => {
-          console.error('Error fetching profile:', e);
-        }).finally(() => {
-          if (mounted) setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    }).catch(e => {
-      console.error('[AuthProvider] getSession error', e);
-      if (mounted) setLoading(false);
-    });
-
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-      subscription.unsubscribe();
+    const newId = `user-${Date.now()}`;
+    MOCK_USERS[newId] = {
+      email,
+      password,
+      profile: {
+        id: `prof-${Date.now()}`,
+        user_id: newId,
+        name: meta.name,
+        email,
+        phone: meta.phone || '',
+        cpf: meta.cpf || null,
+        user_type: meta.user_type as 'cliente' | 'produtor',
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
     };
-  }, []);
+    return { error: null };
+  };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
+    localStorage.removeItem('mock_user_id');
+    setUserId(null);
     setProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, profile, loading, isAdmin, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading: false, isAdmin, signOut, signIn, signUp }}>
       {children}
     </AuthContext.Provider>
   );
