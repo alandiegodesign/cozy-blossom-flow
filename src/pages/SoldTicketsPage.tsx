@@ -175,22 +175,18 @@ export default function SoldTicketsPage() {
     setScanLoading(true);
     setScanResult(null);
     try {
-      const { data, error } = await supabase.rpc('lookup_ticket_by_code', {
-        p_code: code,
-        p_producer_id: user!.id,
-      });
-      if (error || !data || data.length === 0 || !data[0].order_id) {
+      const data = await lookupTicketByCode(code, user!.id);
+      if (!data || !data.order_id) {
         setScanResult({ valid: false });
       } else {
-        const row = data[0] as any;
         setScanResult({
-          valid: row.is_valid && !row.is_already_validated,
-          event: row.event_title || '—',
-          location: row.location_name || '—',
-          buyer: row.buyer_name || '—',
-          quantity: row.item_quantity || 0,
-          orderId: row.order_id,
-          alreadyValidated: row.is_already_validated,
+          valid: data.is_valid && !data.is_already_validated,
+          event: data.event_title || '—',
+          location: data.location_name || '—',
+          buyer: data.buyer_name || '—',
+          quantity: data.item_quantity || 0,
+          orderId: data.order_id,
+          alreadyValidated: data.is_already_validated,
         });
       }
     } catch {
