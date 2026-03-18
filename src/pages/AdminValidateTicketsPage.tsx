@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ScanLine, Search, CheckCircle, XCircle, Camera, Keyboard, Shield } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import QRScanner from '@/components/QRScanner';
-import { adminLookupTicketByCode, adminValidateOrder } from '@/services/orderService';
 
 interface TicketResult {
   valid: boolean;
@@ -37,19 +37,23 @@ export default function AdminValidateTicketsPage() {
     setValidated(false);
 
     try {
-      const data = await adminLookupTicketByCode(inputCode);
-      if (!data || !data.order_id) {
+      const { data, error } = await supabase.rpc('admin_lookup_ticket_by_code', {
+        p_code: inputCode,
+      });
+
+      if (error || !data || data.length === 0 || !data[0].order_id) {
         setResult({ valid: false });
       } else {
+        const row = data[0] as any;
         setResult({
-          valid: data.is_valid && !data.is_already_validated,
-          event: data.event_title || '—',
-          location: data.location_name || '—',
-          buyer: data.buyer_name || '—',
-          quantity: data.item_quantity || 0,
-          orderId: data.order_id,
-          alreadyValidated: data.is_already_validated,
-          producerName: data.producer_name || '—',
+          valid: row.is_valid && !row.is_already_validated,
+          event: row.event_title || '—',
+          location: row.location_name || '—',
+          buyer: row.buyer_name || '—',
+          quantity: row.item_quantity || 0,
+          orderId: row.order_id,
+          alreadyValidated: row.is_already_validated,
+          producerName: row.producer_name || '—',
         });
       }
     } catch {
@@ -80,7 +84,10 @@ export default function AdminValidateTicketsPage() {
     if (!result?.orderId || !user) return;
     setValidating(true);
     try {
-      await adminValidateOrder(result.orderId);
+      const { data, error } = await supabase.rpc('admin_validate_order', {
+        p_order_id: result.orderId,
+      });
+      if (error) throw error;
       setValidated(true);
     } catch {
       // ignore
@@ -114,10 +121,18 @@ export default function AdminValidateTicketsPage() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
         <div className="flex gap-2">
-          <Button variant={mode === 'scanner' ? 'default' : 'outline'} className={mode === 'scanner' ? 'bg-amber-500 hover:bg-amber-600 text-white flex-1' : 'flex-1'} onClick={() => { setMode('scanner'); resetScan(); }}>
+          <Button
+            variant={mode === 'scanner' ? 'default' : 'outline'}
+            className={mode === 'scanner' ? 'bg-amber-500 hover:bg-amber-600 text-white flex-1' : 'flex-1'}
+            onClick={() => { setMode('scanner'); resetScan(); }}
+          >
             <Camera className="w-4 h-4 mr-2" /> Câmera
           </Button>
-          <Button variant={mode === 'manual' ? 'default' : 'outline'} className={mode === 'manual' ? 'bg-amber-500 hover:bg-amber-600 text-white flex-1' : 'flex-1'} onClick={() => { setMode('manual'); resetScan(); }}>
+          <Button
+            variant={mode === 'manual' ? 'default' : 'outline'}
+            className={mode === 'manual' ? 'bg-amber-500 hover:bg-amber-600 text-white flex-1' : 'flex-1'}
+            onClick={() => { setMode('manual'); resetScan(); }}
+          >
             <Keyboard className="w-4 h-4 mr-2" /> Manual
           </Button>
         </div>
@@ -129,14 +144,21 @@ export default function AdminValidateTicketsPage() {
 
           {mode === 'manual' && (
             <div className="flex gap-2">
-              <Input placeholder="Código de validação" value={code} onChange={e => setCode(e.target.value)} className="flex-1" />
+              <Input
+                placeholder="Código de validação"
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                className="flex-1"
+              />
               <Button onClick={handleManualValidate} disabled={loading} className="bg-amber-500 hover:bg-amber-600 text-white">
                 <Search className="w-4 h-4 mr-1" /> Validar
               </Button>
             </div>
           )}
 
-          {loading && <p className="text-center text-muted-foreground text-sm">Validando...</p>}
+          {loading && (
+            <p className="text-center text-muted-foreground text-sm">Validando...</p>
+          )}
 
           {result && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
@@ -154,7 +176,11 @@ export default function AdminValidateTicketsPage() {
                     </div>
                   </div>
                   {!validated && (
-                    <Button onClick={handleConfirmValidation} disabled={validating} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3">
+                    <Button
+                      onClick={handleConfirmValidation}
+                      disabled={validating}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3"
+                    >
                       {validating ? 'Validando...' : '✓ Confirmar Check-in'}
                     </Button>
                   )}

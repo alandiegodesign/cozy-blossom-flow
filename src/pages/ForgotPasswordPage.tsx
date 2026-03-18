@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -15,11 +16,11 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     if (!email) { toast.error('Informe seu email'); return; }
     setLoading(true);
-    // Mock: just pretend we sent an email
-    setTimeout(() => {
-      setLoading(false);
-      setSent(true);
-    }, 1000);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) { toast.error(error.message); } else { setSent(true); }
   };
 
   return (

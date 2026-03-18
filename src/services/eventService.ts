@@ -1,84 +1,92 @@
-import { MOCK_EVENTS, MockEvent, generateId } from '@/mock/data';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Event = MockEvent;
-export type EventInsert = Partial<MockEvent> & { title: string; date: string; created_by: string };
-export type EventUpdate = Partial<MockEvent>;
-
-// In-memory store
-let events = [...MOCK_EVENTS];
+export type Event = Tables<'events'>;
+export type EventInsert = TablesInsert<'events'>;
+export type EventUpdate = TablesUpdate<'events'>;
 
 export async function getEvents(): Promise<Event[]> {
   const today = new Date().toISOString().slice(0, 10);
-  return events
-    .filter(e => !e.deleted_at && e.is_visible && e.date >= today)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .is('deleted_at', null)
+    .eq('is_visible', true)
+    .gte('date', today)
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getEventsByCreator(userId: string): Promise<Event[]> {
-  return events
-    .filter(e => e.created_by === userId && !e.deleted_at)
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', userId)
+    .is('deleted_at', null)
+    .order('date', { ascending: true });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getDeletedEventsByCreator(userId: string): Promise<Event[]> {
-  return events
-    .filter(e => e.created_by === userId && e.deleted_at)
-    .sort((a, b) => (b.deleted_at || '').localeCompare(a.deleted_at || ''));
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('created_by', userId)
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
 }
 
 export async function getEvent(id: string): Promise<Event | null> {
-  return events.find(e => e.id === id) || null;
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
 }
 
 export async function createEvent(data: EventInsert): Promise<Event> {
-  const now = new Date().toISOString();
-  const event: Event = {
-    id: generateId(),
-    title: data.title,
-    description: data.description || '',
-    date: data.date,
-    time: data.time || '00:00',
-    end_date: data.end_date || null,
-    end_time: data.end_time || null,
-    location_name: data.location_name || null,
-    location_address: data.location_address || null,
-    banner_image: data.banner_image || null,
-    map_image: data.map_image || null,
-    tags: data.tags || [],
-    policies: data.policies || [],
-    is_visible: data.is_visible ?? true,
-    created_by: data.created_by,
-    created_at: now,
-    updated_at: now,
-    deleted_at: null,
-    sales_end_time: data.sales_end_time || null,
-  };
-  events.push(event);
+  const { data: event, error } = await supabase
+    .from('events')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw error;
   return event;
 }
 
 export async function updateEvent(id: string, data: EventUpdate): Promise<Event> {
-  const idx = events.findIndex(e => e.id === id);
-  if (idx === -1) throw new Error('Event not found');
-  events[idx] = { ...events[idx], ...data, updated_at: new Date().toISOString() };
-  return events[idx];
+  const { data: event, error } = await supabase
+    .from('events')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return event;
 }
 
 export async function softDeleteEvent(id: string): Promise<void> {
-  const idx = events.findIndex(e => e.id === id);
-  if (idx !== -1) events[idx].deleted_at = new Date().toISOString();
+  const { error } = await supabase.from('events').update({ deleted_at: new Date().toISOString() } as any).eq('id', id);
+  if (error) throw error;
 }
 
 export async function restoreEvent(id: string): Promise<void> {
-  const idx = events.findIndex(e => e.id === id);
-  if (idx !== -1) events[idx].deleted_at = null;
+  const { error } = await supabase.from('events').update({ deleted_at: null } as any).eq('id', id);
+  if (error) throw error;
 }
 
 export async function permanentlyDeleteEvent(id: string): Promise<void> {
-  events = events.filter(e => e.id !== id);
+  const { error } = await supabase.from('events').delete().eq('id', id);
+  if (error) throw error;
 }
 
 export async function toggleEventVisibility(id: string, isVisible: boolean): Promise<void> {
-  const idx = events.findIndex(e => e.id === id);
-  if (idx !== -1) events[idx].is_visible = isVisible;
+  const { error } = await supabase.from('events').update({ is_visible: isVisible } as any).eq('id', id);
+  if (error) throw error;
 }

@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ScanLine, Search, CheckCircle, XCircle, Camera, Keyboard } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import QRScanner from '@/components/QRScanner';
-import { validateOrder, lookupTicketByCode } from '@/services/orderService';
+import { validateOrder } from '@/services/orderService';
 
 interface TicketResult {
   valid: boolean;
@@ -36,21 +37,30 @@ export default function ValidateTicketsPage() {
     setValidated(false);
 
     try {
-      const data = await lookupTicketByCode(inputCode, user.id);
-      if (!data || !data.order_id) {
+      console.log('Validating code:', inputCode, 'producer:', user.id);
+      const { data, error } = await supabase.rpc('lookup_ticket_by_code', {
+        p_code: inputCode,
+        p_producer_id: user.id,
+      });
+
+      console.log('Validation result:', data, error);
+
+      if (error || !data || data.length === 0 || !data[0].order_id) {
         setResult({ valid: false });
       } else {
+        const row = data[0] as any;
         setResult({
-          valid: data.is_valid && !data.is_already_validated,
-          event: data.event_title || '—',
-          location: data.location_name || '—',
-          buyer: data.buyer_name || '—',
-          quantity: data.item_quantity || 0,
-          orderId: data.order_id,
-          alreadyValidated: data.is_already_validated,
+          valid: row.is_valid && !row.is_already_validated,
+          event: row.event_title || '—',
+          location: row.location_name || '—',
+          buyer: row.buyer_name || '—',
+          quantity: row.item_quantity || 0,
+          orderId: row.order_id,
+          alreadyValidated: row.is_already_validated,
         });
       }
-    } catch {
+    } catch (err) {
+      console.error('Validation error:', err);
       setResult({ valid: false });
     } finally {
       setLoading(false);
@@ -64,11 +74,15 @@ export default function ValidateTicketsPage() {
 
   const handleQRScan = (decodedText: string) => {
     const raw = decodedText.trim();
+
+    // Accept plain code (preferred), custom scheme, URL with query param, or inline token
     const plainMatch = raw.match(/^([A-Za-z0-9-]{6,64})$/i);
     const schemeMatch = raw.match(/ticketvibe:\/\/validate\/([A-Za-z0-9-]+)/i);
     const queryMatch = raw.match(/[?&](?:code|validation_code)=([A-Za-z0-9-]+)/i);
     const inlineCodeMatch = raw.match(/\b([A-Z0-9]{8})\b/i);
+
     const scannedCode = (plainMatch?.[1] || schemeMatch?.[1] || queryMatch?.[1] || inlineCodeMatch?.[1] || raw).trim().toUpperCase();
+
     setMode('manual');
     setCode(scannedCode);
     validateCode(scannedCode);
@@ -111,10 +125,18 @@ export default function ValidateTicketsPage() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto px-6 -mt-6 space-y-4">
         <div className="flex gap-2">
-          <Button variant={mode === 'scanner' ? 'default' : 'outline'} className={mode === 'scanner' ? 'gradient-primary text-white flex-1' : 'flex-1'} onClick={() => { setMode('scanner'); resetScan(); }}>
+          <Button
+            variant={mode === 'scanner' ? 'default' : 'outline'}
+            className={mode === 'scanner' ? 'gradient-primary text-white flex-1' : 'flex-1'}
+            onClick={() => { setMode('scanner'); resetScan(); }}
+          >
             <Camera className="w-4 h-4 mr-2" /> Câmera
           </Button>
-          <Button variant={mode === 'manual' ? 'default' : 'outline'} className={mode === 'manual' ? 'gradient-primary text-white flex-1' : 'flex-1'} onClick={() => { setMode('manual'); resetScan(); }}>
+          <Button
+            variant={mode === 'manual' ? 'default' : 'outline'}
+            className={mode === 'manual' ? 'gradient-primary text-white flex-1' : 'flex-1'}
+            onClick={() => { setMode('manual'); resetScan(); }}
+          >
             <Keyboard className="w-4 h-4 mr-2" /> Manual
           </Button>
         </div>
@@ -126,14 +148,21 @@ export default function ValidateTicketsPage() {
 
           {mode === 'manual' && (
             <div className="flex gap-2">
-              <Input placeholder="Código de validação" value={code} onChange={e => setCode(e.target.value)} className="flex-1" />
+              <Input
+                placeholder="Código de validação"
+                value={code}
+                onChange={e => setCode(e.target.value)}
+                className="flex-1"
+              />
               <Button onClick={handleManualValidate} disabled={loading} className="gradient-primary text-white">
                 <Search className="w-4 h-4 mr-1" /> Validar
               </Button>
             </div>
           )}
 
-          {loading && <p className="text-center text-muted-foreground text-sm">Validando...</p>}
+          {loading && (
+            <p className="text-center text-muted-foreground text-sm">Validando...</p>
+          )}
 
           {result && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
@@ -150,7 +179,11 @@ export default function ValidateTicketsPage() {
                     </div>
                   </div>
                   {!validated && (
-                    <Button onClick={handleConfirmValidation} disabled={validating} className="w-full gradient-primary text-white font-bold py-3">
+                    <Button
+                      onClick={handleConfirmValidation}
+                      disabled={validating}
+                      className="w-full gradient-primary text-white font-bold py-3"
+                    >
                       {validating ? 'Validando...' : '✓ Confirmar Check-in'}
                     </Button>
                   )}
