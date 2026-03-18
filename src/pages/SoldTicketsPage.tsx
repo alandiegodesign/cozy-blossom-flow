@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 import ProducerSidebar from '@/components/ProducerSidebar';
 import QRScanner from '@/components/QRScanner';
-import { supabase } from '@/integrations/supabase/client';
+import { lookupTicketByCode } from '@/services/orderService';
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   pista: Music,
