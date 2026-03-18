@@ -7,8 +7,7 @@ import { LocationType } from '@/services/ticketLocationService';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { CartItem } from '@/services/orderService';
+import { CartItem, createOrder } from '@/services/orderService';
 
 const ICONS: Record<LocationType, React.ElementType> = {
   pista: Music, vip: Star, camarote: Crown, camarote_grupo: Users, bistro: UtensilsCrossed, sofa: Crown,
@@ -43,32 +42,19 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleStartPayment = async () => {
-    if (!user) return;
+  const handleConfirmOrder = async () => {
+    if (!user || !eventId) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          items: state.items.map(i => ({
-            ticket_location_id: i.ticket_location_id,
-            quantity: i.quantity,
-            unit_price: i.unit_price,
-            name: i.name,
-            group_size: i.group_size || 1,
-          })),
-          eventId,
-          total: state.total,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
+      const order = await createOrder(eventId, user.id, state.items);
+      if (order) {
+        toast.success('Pedido confirmado com sucesso!');
+        navigate('/my-orders');
       } else {
-        toast.error('Erro ao iniciar pagamento.');
+        toast.error('Ingressos esgotados.');
       }
     } catch {
-      toast.error('Erro ao processar pagamento. Tente novamente.');
+      toast.error('Erro ao processar pedido.');
     } finally {
       setLoading(false);
     }
@@ -136,10 +122,10 @@ export default function CheckoutPage() {
           <p className="font-display font-bold text-4xl text-gradient">R$ {state.total.toFixed(2)}</p>
         </div>
 
-        <button onClick={handleStartPayment} disabled={loading}
+        <button onClick={handleConfirmOrder} disabled={loading}
           className="w-full h-14 text-lg font-display font-bold gradient-primary border-0 rounded-xl glow-primary flex items-center justify-center gap-2 text-white disabled:opacity-50">
           {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : null}
-          {loading ? 'Preparando pagamento...' : 'Pagar com Cartão'}
+          {loading ? 'Processando...' : 'Confirmar Pedido'}
         </button>
         <button onClick={() => navigate(-1)} className="w-full text-center text-sm text-muted-foreground hover:text-destructive transition-colors py-2">
           Descartar pedido

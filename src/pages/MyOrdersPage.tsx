@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { getOrdersByUser } from '@/services/orderService';
+import { getOrdersByUser, getMyTicketCodes } from '@/services/orderService';
 import { getEvent } from '@/services/eventService';
 import { ArrowLeft, ShoppingBag, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,7 +11,6 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import TransferTicketDialog from '@/components/TransferTicketDialog';
-import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendente', className: 'bg-yellow-500/20 text-yellow-400' },
@@ -81,14 +80,7 @@ function OrderCard({ order }: { order: { id: string; event_id: string; status: s
 
   const { data: ticketCodes = [] } = useQuery({
     queryKey: ['ticket-codes', order.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_my_ticket_codes', {
-        p_order_id: order.id,
-        p_user_id: user!.id,
-      });
-      if (error) throw error;
-      return (data as unknown as TicketCode[]) || [];
-    },
+    queryFn: () => getMyTicketCodes(order.id, user!.id),
     enabled: !!user,
   });
 

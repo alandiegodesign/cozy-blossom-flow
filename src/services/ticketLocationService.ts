@@ -1,9 +1,8 @@
-import { supabase } from '@/integrations/supabase/client';
-import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { MOCK_TICKET_LOCATIONS, MockTicketLocation, generateId } from '@/mock/data';
 
-export type TicketLocation = Tables<'ticket_locations'>;
-export type TicketLocationInsert = TablesInsert<'ticket_locations'>;
-export type TicketLocationUpdate = TablesUpdate<'ticket_locations'>;
+export type TicketLocation = MockTicketLocation;
+export type TicketLocationInsert = Partial<MockTicketLocation> & { event_id: string; name: string; location_type: string };
+export type TicketLocationUpdate = Partial<MockTicketLocation>;
 
 export type LocationType = 'pista' | 'vip' | 'camarote' | 'camarote_grupo' | 'bistro' | 'sofa';
 
@@ -20,75 +19,71 @@ export function getLocationColor(type: string): string {
   return LOCATION_COLORS[type] || '#9D4EDD';
 }
 
+// In-memory store
+let locations = [...MOCK_TICKET_LOCATIONS];
+
 export async function getLocationsByEvent(eventId: string): Promise<TicketLocation[]> {
-  const { data, error } = await supabase
-    .from('ticket_locations')
-    .select('*')
-    .eq('event_id', eventId)
-    .order('sort_order', { ascending: true })
-    .order('created_at', { ascending: true });
-  if (error) throw error;
-  return data || [];
+  return locations
+    .filter(l => l.event_id === eventId)
+    .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
 }
 
 export async function updateLocationSortOrders(updates: { id: string; sort_order: number }[]): Promise<void> {
   for (const u of updates) {
-    const { error } = await supabase
-      .from('ticket_locations')
-      .update({ sort_order: u.sort_order } as any)
-      .eq('id', u.id);
-    if (error) throw error;
+    const idx = locations.findIndex(l => l.id === u.id);
+    if (idx !== -1) locations[idx].sort_order = u.sort_order;
   }
 }
 
 export async function getLocation(id: string): Promise<TicketLocation | null> {
-  const { data, error } = await supabase
-    .from('ticket_locations')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
+  return locations.find(l => l.id === id) || null;
 }
 
 export async function createLocation(data: TicketLocationInsert): Promise<TicketLocation> {
-  const { data: loc, error } = await supabase
-    .from('ticket_locations')
-    .insert(data)
-    .select()
-    .single();
-  if (error) throw error;
+  const now = new Date().toISOString();
+  const loc: TicketLocation = {
+    id: generateId(),
+    event_id: data.event_id,
+    name: data.name,
+    location_type: data.location_type,
+    description: data.description || null,
+    price: data.price || 0,
+    quantity: data.quantity || 0,
+    available_quantity: data.available_quantity ?? data.quantity ?? 0,
+    is_active: data.is_active ?? true,
+    is_sold_out: data.is_sold_out ?? false,
+    color: data.color || LOCATION_COLORS[data.location_type] || '#9D4EDD',
+    sort_order: data.sort_order || 0,
+    group_size: data.group_size || 1,
+    created_at: now,
+    updated_at: now,
+  };
+  locations.push(loc);
   return loc;
 }
 
 export async function updateLocation(id: string, data: TicketLocationUpdate): Promise<void> {
-  const { error } = await supabase
-    .from('ticket_locations')
-    .update(data)
-    .eq('id', id);
-  if (error) throw error;
+  const idx = locations.findIndex(l => l.id === id);
+  if (idx !== -1) locations[idx] = { ...locations[idx], ...data, updated_at: new Date().toISOString() };
 }
 
 export async function deleteLocation(id: string): Promise<void> {
-  const { error } = await supabase.from('ticket_locations').delete().eq('id', id);
-  if (error) throw error;
+  locations = locations.filter(l => l.id !== id);
 }
 
 export async function decreaseAvailability(id: string, qty: number): Promise<boolean> {
-  const { data, error } = await supabase.rpc('decrease_availability', {
-    loc_id: id,
-    qty,
-  });
-  if (error) throw error;
-  return data as boolean;
+  const idx = locations.findIndex(l => l.id === id);
+  if (idx === -1 || locations[idx].available_quantity < qty) return false;
+  locations[idx].available_quantity -= qty;
+  return true;
 }
 
 export async function toggleLocationActive(id: string, isActive: boolean): Promise<void> {
-  const { error } = await supabase.from('ticket_locations').update({ is_active: isActive } as any).eq('id', id);
-  if (error) throw error;
+  const idx = locations.findIndex(l => l.id === id);
+  if (idx !== -1) locations[idx].is_active = isActive;
 }
 
 export async function toggleLocationSoldOut(id: string, isSoldOut: boolean): Promise<void> {
-  const { error } = await supabase.from('ticket_locations').update({ is_sold_out: isSoldOut } as any).eq('id', id);
-  if (error) throw error;
+  const idx = locations.findIndex(l => l.id === id);
+  if (idx !== -1) locations[idx].is_sold_out = isSoldOut;
 }

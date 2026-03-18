@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -13,24 +12,16 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash.includes('type=recovery')) {
-      toast.error('Link inválido');
-      navigate('/login');
-    }
-  }, [navigate]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) { toast.error('Mínimo 6 caracteres'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setLoading(false);
-    if (error) { toast.error(error.message); } else {
+    // Mock: just navigate
+    setTimeout(() => {
+      setLoading(false);
       toast.success('Senha atualizada!');
-      navigate('/');
-    }
+      navigate('/login');
+    }, 1000);
   };
 
   return (
