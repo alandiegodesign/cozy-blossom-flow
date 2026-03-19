@@ -107,6 +107,16 @@ function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
             >
               <Key className="w-4 h-4 shrink-0" /> Credenciais
             </button>
+            <button
+              onClick={() => onNav('/export-data')}
+              className={`flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors
+                ${location.pathname === '/export-data'
+                  ? 'text-amber-500'
+                  : 'text-amber-500/80 hover:text-amber-500'
+                }`}
+            >
+              <DatabaseBackup className="w-4 h-4 shrink-0" /> Exportar Dados
+            </button>
           </>
         )}
       </nav>

@@ -110,6 +110,7 @@ const AppRoutes = () => (
       <Route path="/admin/producer/:producerId" element={<AdminRoute><AdminProducerDetailPage /></AdminRoute>} />
       <Route path="/admin/validate" element={<AdminRoute><AdminValidateTicketsPage /></AdminRoute>} />
       <Route path="/admin-credentials" element={<ProtectedRoute><AdminCredentialsPage /></ProtectedRoute>} />
+      <Route path="/export-data" element={<ProtectedRoute><ExportDataPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Suspense>
