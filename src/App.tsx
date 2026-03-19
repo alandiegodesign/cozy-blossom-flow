@@ -42,6 +42,7 @@ const AdminDashboardPage = lazyRetry(() => import("./pages/AdminDashboardPage"))
 const AdminProducerDetailPage = lazyRetry(() => import("./pages/AdminProducerDetailPage"));
 const AdminValidateTicketsPage = lazyRetry(() => import("./pages/AdminValidateTicketsPage"));
 const AdminCredentialsPage = lazyRetry(() => import("./pages/AdminCredentialsPage"));
+const ExportDataPage = lazyRetry(() => import("./pages/ExportDataPage"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
