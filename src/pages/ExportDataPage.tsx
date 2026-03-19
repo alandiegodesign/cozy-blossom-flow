@@ -212,12 +212,12 @@ CREATE POLICY "Users can insert order items" ON public.order_items FOR INSERT TO
 -- 4. FUNCTIONS
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role)
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 BEGIN
   INSERT INTO public.profiles (user_id, name, user_type, phone, cpf, email, avatar_url)
   VALUES (
@@ -235,26 +235,26 @@ BEGIN
     avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url);
   RETURN NEW;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.assign_default_role()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 BEGIN
   INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'atendente') ON CONFLICT (user_id, role) DO NOTHING;
   RETURN NEW;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS trigger LANGUAGE plpgsql SET search_path = 'public' AS \\$\\$
+RETURNS trigger LANGUAGE plpgsql SET search_path = 'public' AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.generate_validation_code()
-RETURNS trigger LANGUAGE plpgsql SET search_path = 'public' AS \\$\\$
+RETURNS trigger LANGUAGE plpgsql SET search_path = 'public' AS $$
 DECLARE v_code text;
 BEGIN
   IF NEW.validation_code IS NULL OR btrim(NEW.validation_code) = '' THEN
@@ -268,20 +268,20 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.decrease_availability(loc_id uuid, qty integer)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE rows_affected INTEGER;
 BEGIN
   UPDATE public.ticket_locations SET available_quantity = available_quantity - qty WHERE id = loc_id AND available_quantity >= qty;
   GET DIAGNOSTICS rows_affected = ROW_COUNT;
   RETURN rows_affected > 0;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.validate_order(p_order_id uuid, p_producer_id uuid)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE rows_affected INTEGER;
 BEGIN
   UPDATE public.orders SET validated_at = now() WHERE id = p_order_id AND validated_at IS NULL
@@ -289,10 +289,10 @@ BEGIN
   GET DIAGNOSTICS rows_affected = ROW_COUNT;
   RETURN rows_affected > 0;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_validate_order(p_order_id uuid)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE rows_affected INTEGER;
 BEGIN
   IF NOT public.has_role(auth.uid(), 'admin') THEN RETURN false; END IF;
@@ -300,10 +300,10 @@ BEGIN
   GET DIAGNOSTICS rows_affected = ROW_COUNT;
   RETURN rows_affected > 0;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.transfer_order(p_order_id uuid, p_from_user_id uuid, p_to_user_id uuid)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE rows_affected INTEGER;
 BEGIN
   UPDATE public.orders SET user_id = p_to_user_id, updated_at = now()
@@ -311,52 +311,52 @@ BEGIN
   GET DIAGNOSTICS rows_affected = ROW_COUNT;
   RETURN rows_affected > 0;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.find_user_by_email_or_cpf(p_identifier text)
-RETURNS TABLE(user_id uuid, user_name text, user_email text) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS TABLE(user_id uuid, user_name text, user_email text) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT p.user_id, p.name as user_name, u.email as user_email
   FROM public.profiles p JOIN auth.users u ON u.id = p.user_id
   WHERE u.email = p_identifier OR p.cpf = p_identifier LIMIT 1;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.get_email_by_cpf(p_cpf text)
-RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT u.email FROM auth.users u JOIN public.profiles p ON p.user_id = u.id WHERE p.cpf = p_cpf LIMIT 1;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.get_events_list(p_creator_id uuid DEFAULT NULL)
-RETURNS SETOF events LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS SETOF events LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT * FROM public.events WHERE deleted_at IS NULL AND (p_creator_id IS NULL OR created_by = p_creator_id) ORDER BY date ASC;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.get_my_ticket_codes(p_order_id uuid, p_user_id uuid)
-RETURNS TABLE(item_id uuid, validation_code text, location_name text, quantity integer) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+RETURNS TABLE(item_id uuid, validation_code text, location_name text, quantity integer) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT oi.id, oi.validation_code, tl.name, oi.quantity
   FROM public.order_items oi JOIN public.orders o ON o.id = oi.order_id JOIN public.ticket_locations tl ON tl.id = oi.ticket_location_id
   WHERE oi.order_id = p_order_id AND o.user_id = p_user_id;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.get_producer_sales(p_user_id uuid)
 RETURNS TABLE(order_id uuid, event_id uuid, event_title text, event_date date, buyer_id uuid, order_status text, total_amount numeric, order_created_at timestamptz, item_id uuid, location_name text, location_type text, item_quantity integer, item_unit_price numeric, item_subtotal numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT o.id, e.id, e.title, e.date, o.user_id, o.status, o.total_amount, o.created_at, oi.id, tl.name, tl.location_type, oi.quantity, oi.unit_price, oi.subtotal
   FROM orders o JOIN events e ON e.id = o.event_id JOIN order_items oi ON oi.order_id = o.id JOIN ticket_locations tl ON tl.id = oi.ticket_location_id
   WHERE e.created_by = p_user_id ORDER BY o.created_at DESC;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.get_producer_tickets(p_user_id uuid)
 RETURNS TABLE(order_id uuid, event_id uuid, event_title text, event_date date, buyer_id uuid, buyer_name text, buyer_email text, buyer_phone text, buyer_cpf text, order_status text, validated_at timestamptz, total_amount numeric, order_created_at timestamptz, order_updated_at timestamptz, item_id uuid, location_name text, location_type text, item_quantity integer, item_unit_price numeric, item_subtotal numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT o.id, e.id, e.title, e.date, o.user_id, p.name, u.email, p.phone, p.cpf, o.status, o.validated_at, o.total_amount, o.created_at, o.updated_at, oi.id, tl.name, tl.location_type, oi.quantity, oi.unit_price, oi.subtotal
   FROM orders o JOIN events e ON e.id = o.event_id JOIN order_items oi ON oi.order_id = o.id JOIN ticket_locations tl ON tl.id = oi.ticket_location_id
   LEFT JOIN profiles p ON p.user_id = o.user_id LEFT JOIN auth.users u ON u.id = o.user_id
   WHERE e.created_by = p_user_id ORDER BY o.created_at DESC;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.lookup_ticket_by_code(p_code text, p_producer_id uuid)
 RETURNS TABLE(is_valid boolean, order_id uuid, event_title text, location_name text, buyer_name text, item_quantity integer, is_already_validated boolean, validation_code text)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE v_item record; v_order record;
 BEGIN
   SELECT * INTO v_item FROM public.order_items WHERE order_items.validation_code = upper(trim(p_code));
@@ -369,11 +369,11 @@ BEGIN
   RETURN QUERY SELECT (v_order.status = 'confirmed'), v_order.id, e.title, tl.name, COALESCE(p.name, chr(8212)), v_item.quantity, (v_order.validated_at IS NOT NULL), v_item.validation_code
   FROM public.events e LEFT JOIN public.ticket_locations tl ON tl.id = v_item.ticket_location_id LEFT JOIN public.profiles p ON p.user_id = v_order.user_id WHERE e.id = v_order.event_id;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_lookup_ticket_by_code(p_code text)
 RETURNS TABLE(is_valid boolean, order_id uuid, event_title text, location_name text, buyer_name text, item_quantity integer, is_already_validated boolean, validation_code text, producer_name text)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public' AS $$
 DECLARE v_item record; v_order record;
 BEGIN
   IF NOT public.has_role(auth.uid(), 'admin') THEN RETURN QUERY SELECT false, NULL::uuid, NULL::text, NULL::text, NULL::text, NULL::integer, false, NULL::text, NULL::text; RETURN; END IF;
@@ -384,42 +384,42 @@ BEGIN
   RETURN QUERY SELECT (v_order.status = 'confirmed'), v_order.id, e.title, tl.name, COALESCE(p.name, chr(8212)), v_item.quantity, (v_order.validated_at IS NOT NULL), v_item.validation_code, COALESCE(prod.name, chr(8212))
   FROM public.events e LEFT JOIN public.ticket_locations tl ON tl.id = v_item.ticket_location_id LEFT JOIN public.profiles p ON p.user_id = v_order.user_id LEFT JOIN public.profiles prod ON prod.user_id = e.created_by WHERE e.id = v_order.event_id;
 END;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_get_all_producers()
 RETURNS TABLE(producer_id uuid, producer_name text, producer_email text, producer_phone text, total_events bigint, total_revenue numeric, total_tickets_sold bigint, total_orders bigint)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT p.user_id, p.name, COALESCE(p.email, ''), COALESCE(p.phone, ''), COUNT(DISTINCT e.id), COALESCE(SUM(oi.subtotal), 0), COALESCE(SUM(oi.quantity), 0), COUNT(DISTINCT o.id)
   FROM profiles p LEFT JOIN events e ON e.created_by = p.user_id AND e.deleted_at IS NULL LEFT JOIN orders o ON o.event_id = e.id AND o.status = 'confirmed' LEFT JOIN order_items oi ON oi.order_id = o.id
   WHERE p.user_type = 'produtor' GROUP BY p.user_id, p.name, p.email, p.phone;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_get_all_events()
 RETURNS TABLE(event_id uuid, event_title text, event_date date, producer_id uuid, producer_name text, is_visible boolean, total_revenue numeric, total_tickets_sold bigint, total_orders bigint, created_at timestamptz)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT e.id, e.title, e.date, e.created_by, COALESCE(p.name, chr(8212)), e.is_visible, COALESCE(SUM(oi.subtotal), 0), COALESCE(SUM(oi.quantity), 0)::bigint, COUNT(DISTINCT o.id), e.created_at
   FROM events e LEFT JOIN profiles p ON p.user_id = e.created_by LEFT JOIN orders o ON o.event_id = e.id AND o.status = 'confirmed' LEFT JOIN order_items oi ON oi.order_id = o.id
   WHERE e.deleted_at IS NULL GROUP BY e.id, e.title, e.date, e.created_by, p.name, e.is_visible, e.created_at ORDER BY e.created_at DESC;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_get_producer_sales(p_producer_id uuid)
 RETURNS TABLE(order_id uuid, event_id uuid, event_title text, event_date date, buyer_name text, order_status text, total_amount numeric, order_created_at timestamptz, item_id uuid, location_name text, location_type text, item_quantity integer, item_unit_price numeric, item_subtotal numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT o.id, e.id, e.title, e.date, COALESCE(bp.name, chr(8212)), o.status, o.total_amount, o.created_at, oi.id, tl.name, tl.location_type, oi.quantity, oi.unit_price, oi.subtotal
   FROM orders o JOIN events e ON e.id = o.event_id JOIN order_items oi ON oi.order_id = o.id JOIN ticket_locations tl ON tl.id = oi.ticket_location_id LEFT JOIN profiles bp ON bp.user_id = o.user_id
   WHERE e.created_by = p_producer_id ORDER BY o.created_at DESC;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.admin_get_events_ticket_summary()
 RETURNS TABLE(event_id uuid, event_title text, event_date date, producer_id uuid, producer_name text, is_visible boolean, location_type text, location_name text, total_quantity integer, sold_quantity bigint, revenue numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS \\$\\$
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
   SELECT e.id, e.title, e.date, e.created_by, COALESCE(p.name, chr(8212)), e.is_visible, tl.location_type, tl.name, tl.quantity, COALESCE(SUM(oi.quantity), 0)::bigint, COALESCE(SUM(oi.subtotal), 0)
   FROM events e LEFT JOIN profiles p ON p.user_id = e.created_by LEFT JOIN ticket_locations tl ON tl.event_id = e.id LEFT JOIN order_items oi ON oi.ticket_location_id = tl.id AND EXISTS (SELECT 1 FROM orders o WHERE o.id = oi.order_id AND o.status = 'confirmed')
   WHERE e.deleted_at IS NULL GROUP BY e.id, e.title, e.date, e.created_by, p.name, e.is_visible, e.created_at, tl.location_type, tl.name, tl.quantity, tl.sort_order ORDER BY e.created_at DESC, tl.sort_order;
-\\$\\$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)
-RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_catalog', 'information_schema', 'auth', 'storage' AS \\$\\$
+RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public', 'pg_catalog', 'information_schema', 'auth', 'storage' AS $$
 DECLARE result json; caller_role text; clean_query text;
 BEGIN
   caller_role := current_setting('request.jwt.claims', true)::json->>'role';
@@ -428,7 +428,7 @@ BEGIN
   EXECUTE 'SELECT json_agg(row_to_json(t)) FROM (' || clean_query || ') t' INTO result;
   RETURN COALESCE(result, '[]'::json);
 END;
-\\$\\$;
+$$;
 
 -- 5. TRIGGERS
 
