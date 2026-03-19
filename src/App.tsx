@@ -45,7 +45,17 @@ const AdminCredentialsPage = lazyRetry(() => import("./pages/AdminCredentialsPag
 const ExportDataPage = lazyRetry(() => import("./pages/ExportDataPage"));
 const NotFound = lazyRetry(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60000,
+      gcTime: 300000,
+      retry: 1,
+      retryDelay: 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();

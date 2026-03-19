@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  console.log('[AuthProvider] render, loading:', loading, 'session:', !!session);
+  
 
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Safety timeout: never stay loading forever
     const timeout = setTimeout(() => {
       setLoading(prev => {
         if (prev) console.warn('[AuthProvider] Loading timeout - forcing ready');
@@ -65,13 +64,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 5000);
 
     let mounted = true;
+    let initialSessionHandled = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        console.log('[AuthProvider] onAuthStateChange', _event, !!session);
+        if (!mounted) return;
+        // Skip if getSession already handled the initial load
+        if (_event === 'INITIAL_SESSION' && initialSessionHandled) return;
+        
         setSession(session);
         if (session?.user) {
-          // Defer profile fetch to avoid Supabase deadlock
           setTimeout(() => {
             if (!mounted) return;
             fetchProfile(session.user.id).catch(e => {
@@ -89,8 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthProvider] getSession result', !!session);
       if (!mounted) return;
+      initialSessionHandled = true;
       setSession(session);
       if (session?.user) {
         fetchProfile(session.user.id).catch(e => {
