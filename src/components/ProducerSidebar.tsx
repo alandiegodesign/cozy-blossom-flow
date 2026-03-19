@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
-  Menu, Home, PlusCircle, TicketCheck, Archive,
+  Menu, Home, PlusCircle, TicketCheck, Archive, DatabaseBackup,
   BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield, FileEdit, Key
 } from 'lucide-react';
 import { useState } from 'react';
