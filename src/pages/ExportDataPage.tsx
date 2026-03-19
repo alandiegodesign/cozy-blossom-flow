@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
   Download, Loader2, Database, Users, Code2, Key,
-  FileText, ArrowLeft, CheckCircle, Table2, HardDrive
+  FileText, ArrowLeft, CheckCircle, Table2, HardDrive, Copy, Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
