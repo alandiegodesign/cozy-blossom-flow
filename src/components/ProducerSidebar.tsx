@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
-  Menu, Home, PlusCircle, TicketCheck, Archive,
+  Menu, Home, PlusCircle, TicketCheck, Archive, DatabaseBackup,
   BarChart3, User, LogOut, Users, Trash2, DollarSign, Shield, FileEdit, Key
 } from 'lucide-react';
 import { useState } from 'react';
@@ -106,6 +106,16 @@ function SidebarContent_({ onNav }: { onNav: (path: string) => void }) {
                 }`}
             >
               <Key className="w-4 h-4 shrink-0" /> Credenciais
+            </button>
+            <button
+              onClick={() => onNav('/export-data')}
+              className={`flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors
+                ${location.pathname === '/export-data'
+                  ? 'text-amber-500'
+                  : 'text-amber-500/80 hover:text-amber-500'
+                }`}
+            >
+              <DatabaseBackup className="w-4 h-4 shrink-0" /> Exportar Dados
             </button>
           </>
         )}
