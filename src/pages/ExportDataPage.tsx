@@ -46,8 +46,8 @@ export default function ExportDataPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [done, setDone] = useState<Record<string, boolean>>({});
   const [sqlContent, setSqlContent] = useState<string>('');
-  const [sqlLoading, setSqlLoading] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
 
   useEffect(() => {
