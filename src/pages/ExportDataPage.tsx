@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
   Download, Loader2, Database, Users, Code2, Key,
-  FileText, ArrowLeft, CheckCircle, Table2, HardDrive
+  FileText, ArrowLeft, CheckCircle, Table2, HardDrive, Copy, Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -46,6 +47,15 @@ export default function ExportDataPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [done, setDone] = useState<Record<string, boolean>>({});
+  const [sqlContent, setSqlContent] = useState<string>('');
+  const [sqlCopied, setSqlCopied] = useState(false);
+
+  useEffect(() => {
+    fetch('/database-schema.sql')
+      .then(r => r.text())
+      .then(text => setSqlContent(text))
+      .catch(() => setSqlContent('-- Erro ao carregar o schema SQL'));
+  }, []);
 
   const setStatus = (key: string, isLoading: boolean, isDone?: boolean) => {
     setLoading(p => ({ ...p, [key]: isLoading }));
@@ -260,14 +270,34 @@ export default function ExportDataPage() {
             <CardTitle className="flex items-center gap-2 text-lg">
               <FileText className="h-5 w-5 text-primary" /> Schema SQL Completo
             </CardTitle>
-            <CardDescription>Arquivo SQL para recriar todo o banco em outra instância</CardDescription>
+            <CardDescription>Copie o SQL abaixo para recriar todas as tabelas em outra instância</CardDescription>
           </CardHeader>
-          <CardContent>
-            <a href="/database-schema.sql" download>
-              <Button variant="outline" className="w-full">
-                <Download className="h-4 w-4 mr-2" /> Download database-schema.sql
+          <CardContent className="space-y-3">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(sqlContent);
+                  setSqlCopied(true);
+                  setTimeout(() => setSqlCopied(false), 2000);
+                  toast({ title: 'SQL copiado para a área de transferência!' });
+                }}
+              >
+                {sqlCopied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                {sqlCopied ? 'Copiado!' : 'Copiar SQL'}
               </Button>
-            </a>
+              <a href="/database-schema.sql" download>
+                <Button variant="outline">
+                  <Download className="h-4 w-4 mr-2" /> Download .sql
+                </Button>
+              </a>
+            </div>
+            <Textarea
+              readOnly
+              value={sqlContent}
+              className="font-mono text-xs h-96 resize-y bg-muted/50"
+              placeholder="Carregando schema SQL..."
+            />
           </CardContent>
         </Card>
       </div>
