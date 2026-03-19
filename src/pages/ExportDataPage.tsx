@@ -46,7 +46,16 @@ export default function ExportDataPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [done, setDone] = useState<Record<string, boolean>>({});
+  const [sqlContent, setSqlContent] = useState<string>('');
+  const [sqlLoading, setSqlLoading] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
+
+  useEffect(() => {
+    fetch('/database-schema.sql')
+      .then(r => r.text())
+      .then(text => setSqlContent(text))
+      .catch(() => setSqlContent('-- Erro ao carregar o schema SQL'));
+  }, []);
 
   const setStatus = (key: string, isLoading: boolean, isDone?: boolean) => {
     setLoading(p => ({ ...p, [key]: isLoading }));
